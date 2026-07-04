@@ -28,6 +28,33 @@ npm start         # serve dist/ with the production Node server
 
 This is a static Vite + React app. Choose any platform below.
 
+### GCP VM (humansofstartups)
+
+Production host on Google Cloud Compute:
+
+| Setting | Value |
+|---------|-------|
+| VM | `humansofstartups` |
+| Zone | `asia-south1-a` |
+| IP | `34.47.245.237` |
+| App path | `/var/www/shotnode` |
+| Web root | `/var/www/shotnode/dist` |
+
+**Deploy / update:**
+
+```bash
+bash scripts/deploy-gcp.sh
+```
+
+**Enable HTTPS** (after DNS A record for `shotnode.ai` → `34.47.245.237`):
+
+```bash
+gcloud compute ssh naveenchoudhary@humansofstartups --zone=asia-south1-a \
+  --command 'sudo certbot --nginx -d shotnode.ai -d www.shotnode.ai'
+```
+
+**Live URL (before DNS):** http://34.47.245.237/
+
 ### Vercel (recommended)
 
 1. Push the repo to GitHub.
