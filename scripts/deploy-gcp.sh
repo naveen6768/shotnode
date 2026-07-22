@@ -10,15 +10,32 @@ set -euo pipefail
 VM_NAME="${SHOTNODE_VM_NAME:-humansofstartups}"
 VM_ZONE="${SHOTNODE_VM_ZONE:-asia-south1-a}"
 VM_USER="${SHOTNODE_VM_SSH_USER:-naveenchoudhary}"
+VM_PROJECT="${SHOTNODE_VM_PROJECT:-humansofstartups}"
+GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-contacthumansofstartups@gmail.com}"
 GCLOUD_BIN="${GCLOUD_BIN:-gcloud}"
 DEPLOY_PATH="/var/www/shotnode"
 REPO_URL="https://github.com/naveen6768/shotnode.git"
 
 export PATH="/opt/homebrew/share/google-cloud-sdk/bin:${PATH}"
+export CLOUDSDK_CORE_ACCOUNT="${GCLOUD_ACCOUNT}"
+export CLOUDSDK_CORE_PROJECT="${VM_PROJECT}"
 
-echo "[deploy] Target: ${VM_USER}@${VM_NAME} (${VM_ZONE})"
+echo "[deploy] Target: ${VM_USER}@${VM_NAME} (${VM_ZONE}, project ${VM_PROJECT})"
 
-"${GCLOUD_BIN}" compute ssh "${VM_USER}@${VM_NAME}" --zone="${VM_ZONE}" --command "
+# Ensure the marketing VM is running before SSH (it may be stopped to save cost).
+STATUS="$("${GCLOUD_BIN}" compute instances describe "${VM_NAME}" --zone="${VM_ZONE}" --project="${VM_PROJECT}" --format='get(status)' 2>/dev/null || true)"
+if [[ "${STATUS}" != "RUNNING" ]]; then
+  echo "[deploy] VM status=${STATUS:-UNKNOWN}; starting..."
+  "${GCLOUD_BIN}" compute instances start "${VM_NAME}" --zone="${VM_ZONE}" --project="${VM_PROJECT}"
+  for _ in $(seq 1 18); do
+    if "${GCLOUD_BIN}" compute ssh "${VM_USER}@${VM_NAME}" --zone="${VM_ZONE}" --project="${VM_PROJECT}" --command "true" >/dev/null 2>&1; then
+      break
+    fi
+    sleep 5
+  done
+fi
+
+"${GCLOUD_BIN}" compute ssh "${VM_USER}@${VM_NAME}" --zone="${VM_ZONE}" --project="${VM_PROJECT}" --command "
 set -euo pipefail
 cd ${DEPLOY_PATH}
 if [[ -d .git ]]; then
