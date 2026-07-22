@@ -36,6 +36,6 @@ sudo nginx -t && sudo systemctl reload nginx
 echo '[deploy] Done — dist updated at ${DEPLOY_PATH}/dist'
 "
 
-echo "[deploy] Site: http://34.47.245.237/"
-echo "[deploy] After DNS for shotnode.ai points to 34.47.245.237, run:"
-echo "  gcloud compute ssh ${VM_USER}@${VM_NAME} --zone=${VM_ZONE} --command 'sudo certbot --nginx -d shotnode.ai -d www.shotnode.ai'"
+echo "[deploy] Site: https://shotnode.pro/"
+echo "[deploy] After DNS for shotnode.pro points to 34.47.245.237, run:"
+echo "  gcloud compute ssh ${VM_USER}@${VM_NAME} --zone=${VM_ZONE} --command 'sudo certbot --nginx -d shotnode.pro -d www.shotnode.pro --non-interactive --agree-tos -m k.naveen6767@gmail.com'"

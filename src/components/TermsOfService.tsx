@@ -4,13 +4,10 @@
  */
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { ArrowLeft, Scale, FileText, CheckCircle, HelpCircle } from "lucide-react";
 
-interface TermsOfServiceProps {
-  onBackToHome: () => void;
-}
-
-export default function TermsOfService({ onBackToHome }: TermsOfServiceProps) {
+export default function TermsOfService() {
   return (
     <div className="min-h-screen bg-[#010204] text-white font-sans bg-noise relative pt-24 pb-16">
       {/* Background glow effects */}
@@ -20,14 +17,14 @@ export default function TermsOfService({ onBackToHome }: TermsOfServiceProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 space-y-12">
         {/* Navigation Action & Title Block */}
         <div className="space-y-6">
-          <button
+          <Link
             id="terms-back-btn"
-            onClick={onBackToHome}
+            to="/"
             className="inline-flex items-center gap-2 text-xs font-mono text-[#00D8FF] hover:text-white transition-colors bg-white/5 border border-white/5 hover:border-[#147CFF]/40 px-3 py-1.5 rounded-lg"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Home</span>
-          </button>
+          </Link>
 
           <div className="space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#147CFF]/5 border border-[#147CFF]/15 text-xs font-mono text-[#00D8FF] uppercase tracking-widest">

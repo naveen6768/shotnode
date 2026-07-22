@@ -4,13 +4,10 @@
  */
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Mail, Lock, Globe, FileText, Info } from "lucide-react";
 
-interface PrivacyPolicyProps {
-  onBackToHome: () => void;
-}
-
-export default function PrivacyPolicy({ onBackToHome }: PrivacyPolicyProps) {
+export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-[#010204] text-white font-sans bg-noise relative pt-24 pb-16">
       {/* Background glow effects */}
@@ -20,14 +17,14 @@ export default function PrivacyPolicy({ onBackToHome }: PrivacyPolicyProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 space-y-12">
         {/* Navigation Action & Title Block */}
         <div className="space-y-6">
-          <button
+          <Link
             id="privacy-back-btn"
-            onClick={onBackToHome}
+            to="/"
             className="inline-flex items-center gap-2 text-xs font-mono text-[#00D8FF] hover:text-white transition-colors bg-white/5 border border-white/5 hover:border-[#147CFF]/40 px-3 py-1.5 rounded-lg"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Home</span>
-          </button>
+          </Link>
 
           <div className="space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#147CFF]/5 border border-[#147CFF]/15 text-xs font-mono text-[#00D8FF] uppercase tracking-widest">
@@ -155,7 +152,15 @@ export default function PrivacyPolicy({ onBackToHome }: PrivacyPolicyProps) {
               <li>You may opt-out of marketing circulars or promotional updates by clicking unsubscribe.</li>
             </ul>
             <p>
-              To exercise these rights, simply transmit a clear deletion instruction directly to our corporate email address: <a href="mailto:k.naveen6767@gmail.com" className="text-[#00D8FF] font-mono hover:underline">k.naveen6767@gmail.com</a>.
+              To delete your Firebase / Google-linked ShotNode account, use our dedicated web form at{" "}
+              <Link to="/delete-account" className="text-[#00D8FF] font-mono hover:underline">
+                shotnode.pro/delete-account
+              </Link>
+              , or send a clear deletion instruction to{" "}
+              <a href="mailto:k.naveen6767@gmail.com" className="text-[#00D8FF] font-mono hover:underline">
+                k.naveen6767@gmail.com
+              </a>
+              .
             </p>
           </section>
 

@@ -4,33 +4,34 @@
  */
 
 import React, { useState } from "react";
-import { Menu, X, Play, Zap } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Play } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface HeaderProps {
   onOpenWaitlist: () => void;
   onOpenDemo: () => void;
-  currentView: "home" | "about" | "privacy" | "terms";
-  onNavigate: (view: "home" | "about" | "privacy" | "terms") => void;
 }
 
-export default function Header({ onOpenWaitlist, onOpenDemo, currentView, onNavigate }: HeaderProps) {
+export default function Header({ onOpenWaitlist, onOpenDemo }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Product");
+  const { pathname } = useLocation();
+  const isHome = pathname === "/";
 
   const navLinks = [
-    { label: "Product", view: "home", href: "#", isSection: true },
-    { label: "AI Editing", view: "home", href: "#features-section", isSection: true },
-    { label: "Tools", view: "home", href: "#tools-section", isSection: true },
-    { label: "About Us", view: "about", href: "#" },
-    { label: "Pricing", view: "home", href: "#pricing-section", isSection: true },
+    { label: "Product", to: "/", hash: "", isSection: true },
+    { label: "AI Editing", to: "/#features-section", hash: "#features-section", isSection: true },
+    { label: "Tools", to: "/#tools-section", hash: "#tools-section", isSection: true },
+    { label: "About Us", to: "/about", hash: "", isSection: false },
+    { label: "Pricing", to: "/#pricing-section", hash: "#pricing-section", isSection: true },
   ];
 
   React.useEffect(() => {
-    if (currentView !== "home") return;
+    if (!isHome) return;
 
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 240; // Offset for header height and triggers
+      const scrollPosition = window.scrollY + 240;
 
       const sections = [
         { label: "Product", top: 0 },
@@ -55,79 +56,46 @@ export default function Header({ onOpenWaitlist, onOpenDemo, currentView, onNavi
     handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [currentView]);
+  }, [isHome]);
 
-  const handleLinkClick = (e: React.MouseEvent, link: typeof navLinks[0]) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-
-    if (link.view === "home") {
-      onNavigate("home");
-      if (link.isSection && link.href && link.href.startsWith("#") && link.href.length > 1) {
-        // Wait minor delay for render state to update
-        setTimeout(() => {
-          const el = document.querySelector(link.href);
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 100);
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    } else {
-      onNavigate(link.view as any);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const handleBrandClick = () => {
-    onNavigate("home");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const isLinkActive = (link: (typeof navLinks)[0]) => {
+    if (link.to === "/about") return pathname === "/about";
+    if (!isHome) return false;
+    return link.isSection && activeSection === link.label;
   };
 
   return (
     <nav className="bg-[#010204]/70 backdrop-blur-2xl fixed top-0 w-full z-40 border-b border-white/10 shadow-[0_0_20px_rgba(20,124,255,0.05)]">
       <div className="flex justify-between items-center h-20 px-4 md:px-12 w-full max-w-7xl mx-auto">
-        {/* Brand Logo & Name */}
-        <div 
-          id="brand-logo-container"
-          onClick={handleBrandClick}
-          className="flex items-center gap-3 cursor-pointer group"
-        >
+        <Link id="brand-logo-container" to="/" className="flex items-center gap-3 cursor-pointer group">
           <img
             className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
             alt="ShotNode Logo"
-            src="https://lh3.googleusercontent.com/aida/AP1WRLsFNgnhBA4aDl9FVK6dbHT0J3v51srk4W7IQkj6g6MRrqCTfjNS5Cv-Wc_3UBfkLoCPNgbR4yOg77iIa74VyYw8M1cGdegIBnX0JJhdWqpX76DA66wI5LYyKmcn6mwirzCVGGRIew2gP6KUbCc2h_PdoQtLk3KzCo3KudLPWcF_P9P2_61fInzT9nFljmFYyHBvK1M7rfaFcE489ceo5pUT2zEI80ei4A5KpugyEkh6V6VTmSzlHRxG43H7"
-            referrerPolicy="no-referrer"
+            src="/logo.svg"
           />
           <span className="font-sans text-xl font-extrabold text-white tracking-tighter group-hover:text-[#00D8FF] transition-colors">
             ShotNode
           </span>
-        </div>
+        </Link>
 
-        {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => {
-            const isLinkActive = currentView === "home" ? (link.view === "home" && activeSection === link.label) : currentView === link.view;
-            return (
-              <a
-                id={`nav-link-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
-                key={link.label}
-                href={link.href}
-                onClick={(e) => handleLinkClick(e, link)}
-                className={`font-sans text-[13px] font-medium tracking-wide transition-all duration-200 relative py-1 ${
-                  isLinkActive
-                    ? "text-[#00D8FF] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#00D8FF]"
-                    : "text-on-surface-variant hover:text-white"
-                }`}
-              >
-                {link.label}
-              </a>
-            );
-          })}
+          {navLinks.map((link) => (
+            <Link
+              id={`nav-link-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+              key={link.label}
+              to={link.to}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`font-sans text-[13px] font-medium tracking-wide transition-all duration-200 relative py-1 ${
+                isLinkActive(link)
+                  ? "text-[#00D8FF] font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#00D8FF]"
+                  : "text-on-surface-variant hover:text-white"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
-        {/* Action Buttons */}
         <div className="hidden lg:flex items-center gap-4">
           <button
             id="watch-demo-btn"
@@ -146,7 +114,6 @@ export default function Header({ onOpenWaitlist, onOpenDemo, currentView, onNavi
           </button>
         </div>
 
-        {/* Mobile Navigation Trigger */}
         <div className="flex md:hidden items-center gap-3">
           <button
             id="join-waitlist-btn-mobile-shortcut"
@@ -165,7 +132,6 @@ export default function Header({ onOpenWaitlist, onOpenDemo, currentView, onNavi
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -175,22 +141,19 @@ export default function Header({ onOpenWaitlist, onOpenDemo, currentView, onNavi
             className="md:hidden border-t border-white/10 bg-[#010204]/95 backdrop-blur-3xl overflow-hidden"
           >
             <div className="px-6 py-8 space-y-4 flex flex-col">
-              {navLinks.map((link) => {
-                const isLinkActive = currentView === "home" ? (link.view === "home" && activeSection === link.label) : currentView === link.view;
-                return (
-                  <a
-                    id={`mobile-nav-link-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    key={link.label}
-                    href={link.href}
-                    onClick={(e) => handleLinkClick(e, link)}
-                    className={`font-sans text-sm py-2 tracking-wide block ${
-                      isLinkActive ? "text-[#00D8FF] font-semibold" : "text-on-surface-variant hover:text-white"
-                    }`}
-                  >
-                    {link.label}
-                  </a>
-                );
-              })}
+              {navLinks.map((link) => (
+                <Link
+                  id={`mobile-nav-link-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                  key={link.label}
+                  to={link.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`font-sans text-sm py-2 tracking-wide block ${
+                    isLinkActive(link) ? "text-[#00D8FF] font-semibold" : "text-on-surface-variant hover:text-white"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
 
               <div className="pt-4 border-t border-white/5 flex flex-col gap-3">
                 <button

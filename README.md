@@ -46,11 +46,11 @@ Production host on Google Cloud Compute:
 bash scripts/deploy-gcp.sh
 ```
 
-**Enable HTTPS** (after DNS A record for `shotnode.ai` → `34.47.245.237`):
+**Enable HTTPS** (after DNS A record for `shotnode.pro` → `34.47.245.237`):
 
 ```bash
 gcloud compute ssh naveenchoudhary@humansofstartups --zone=asia-south1-a \
-  --command 'sudo certbot --nginx -d shotnode.ai -d www.shotnode.ai'
+  --command 'sudo certbot --nginx -d shotnode.pro -d www.shotnode.pro --non-interactive --agree-tos -m k.naveen6767@gmail.com'
 ```
 
 **Live URL (before DNS):** http://34.47.245.237/
