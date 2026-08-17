@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.shotnode.app",
+      "sha256_cert_fingerprints": [
+        "E0:96:78:AB:2A:6E:D1:87:4E:87:CC:F7:C5:14:5C:1D:98:F5:1A:32:63:75:FA:BA:F2:C7:B3:07:2B:B4:41:2D"
+      ]
+    }
+  }
+]

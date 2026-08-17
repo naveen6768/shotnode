@@ -2,6 +2,8 @@
 
 Marketing site for ShotNode — the AI video editor built for creators who move fast.
 
+**Full platform setup** (Android, backend, admin, this site): see [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md) in the Android monorepo.
+
 ## Prerequisites
 
 - Node.js 20+
@@ -28,32 +30,33 @@ npm start         # serve dist/ with the production Node server
 
 This is a static Vite + React app. Choose any platform below.
 
-### GCP VM (humansofstartups)
+### GCP VM (shotnode-dev)
 
 Production host on Google Cloud Compute:
 
 | Setting | Value |
 |---------|-------|
-| VM | `humansofstartups` |
+| Project | `shotnode-backend` |
+| VM | `shotnode-dev` |
 | Zone | `asia-south1-a` |
-| IP | `34.47.245.237` |
+| IP | `34.100.189.134` |
 | App path | `/var/www/shotnode` |
 | Web root | `/var/www/shotnode/dist` |
 
-**Deploy / update:**
+**Deploy / update** (installs nginx/Node on first run, then builds + reloads):
 
 ```bash
 bash scripts/deploy-gcp.sh
 ```
 
-**Enable HTTPS** (after DNS A record for `shotnode.pro` → `34.47.245.237`):
+**Enable HTTPS** (after DNS A record for `shotnode.pro` → `34.100.189.134`):
 
 ```bash
-gcloud compute ssh naveenchoudhary@humansofstartups --zone=asia-south1-a \
+gcloud compute ssh naveenchoudhary@shotnode-dev --zone=asia-south1-a --project=shotnode-backend \
   --command 'sudo certbot --nginx -d shotnode.pro -d www.shotnode.pro --non-interactive --agree-tos -m k.naveen6767@gmail.com'
 ```
 
-**Live URL (before DNS):** http://34.47.245.237/
+**Live URL (before DNS):** http://34.100.189.134/
 
 ### Vercel (recommended)
 
