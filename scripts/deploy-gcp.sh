@@ -17,13 +17,13 @@ esac
 VM_NAME="${SHOTNODE_VM_NAME:-shotnode-dev}"
 VM_ZONE="${SHOTNODE_VM_ZONE:-asia-south1-a}"
 VM_USER="${SHOTNODE_VM_SSH_USER:-naveenchoudhary}"
-VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-backend}}"
-GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-srdchaudhary2799@gmail.com}}"
+VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-dev-cn}}"
+GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-cnaveen676767@gmail.com}}"
 GCLOUD_BIN="${GCLOUD_BIN:-gcloud}"
 
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
   DEPLOY_PATH="/var/www/shotnode-dev"
-  SITE_DOMAIN="${SHOTNODE_SITE_DOMAIN:-dev.shotnode.pro}"
+  SITE_DOMAIN="${SHOTNODE_SITE_DOMAIN:-staging.shotnode.pro}"
   NGINX_CONF_SRC="${SCRIPT_DIR}/nginx-shotnode-dev.conf"
   NGINX_SITE="shotnode-dev"
   BUILD_MODE=development
@@ -31,8 +31,8 @@ if [[ "${SHOTNODE_ENV}" == "development" ]]; then
 else
   DEPLOY_PATH="/var/www/shotnode"
   SITE_DOMAIN="${SHOTNODE_SITE_DOMAIN:-shotnode.pro}"
-  NGINX_CONF_SRC="${SCRIPT_DIR}/nginx-shotnode.conf"
-  NGINX_SITE="shotnode"
+  NGINX_CONF_SRC="${SCRIPT_DIR}/nginx-shotnode-pro.conf"
+  NGINX_SITE="shotnode-pro"
   BUILD_MODE=production
   PUBLIC_PORT=80
 fi
