@@ -5,7 +5,15 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ShieldCheck, Mail, Lock, Globe, FileText, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  ShieldCheck,
+  Mail,
+  Lock,
+  Globe,
+  FileText,
+  Info,
+} from "lucide-react";
 
 export default function PrivacyPolicy() {
   return (
@@ -35,129 +43,224 @@ export default function PrivacyPolicy() {
               Privacy Policy
             </h1>
             <p className="text-on-surface-variant text-sm sm:text-base">
-              Last Updated: June 24, 2026. Effective for ShotNode AI Web, Desktop, and Mobile (Android Play Store).
+              Last Updated: September 18, 2026. Effective for the ShotNode
+              Android app and its supporting website.
             </p>
           </div>
         </div>
 
-
-
         {/* Main Document Content */}
         <div className="space-y-8 text-on-surface-variant text-sm leading-relaxed sm:text-base">
-          
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">1</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                1
+              </span>
               Introduction & Corporate Identity
             </h2>
             <p>
-              Welcome to ShotNode AI (referred to herein as the "App" or "Service"), designed, developed, and operated by <strong>SECONDBRAIN VENTURES PRIVATE LIMITED</strong> (referred to as "Company", "We", "Our", or "Us"), a private limited company registered in Noida, Uttar Pradesh, India.
+              Welcome to ShotNode AI (referred to herein as the "App" or
+              "Service"), designed, developed, and operated by{" "}
+              <strong>SECONDBRAIN VENTURES PRIVATE LIMITED</strong> (referred to
+              as "Company", "We", "Our", or "Us"), a private limited company
+              registered in Noida, Uttar Pradesh, India.
             </p>
             <p>
-              We are committed to protecting and respecting your private data. This Privacy Policy outlines how your personal information is gathered, managed, processed, and safeguarded when you download, install, access, or use the ShotNode AI software applications, associated cloud rendering platforms, and official web services.
+              We are committed to protecting and respecting your private data.
+              This Privacy Policy outlines how your personal information is
+              gathered, managed, processed, and safeguarded when you download,
+              install, access, or use the ShotNode AI software applications,
+              associated cloud rendering platforms, and official web services.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">2</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                2
+              </span>
               Information We Collect
             </h2>
             <p>
-              We compile personal, analytical, and technical metadata elements to ensure standard service features function correctly:
+              We compile personal, analytical, and technical metadata elements
+              to ensure standard service features function correctly:
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong className="text-white">Account Information:</strong> When registering, joining our waitlist, or subscribing to our Creator Pro tiers, you may provide your email address (<span className="text-white font-mono">k.naveen6767@gmail.com</span> or others), profile name, primary content platform configurations, and related authentication identifiers.
+                <strong className="text-white">Account Information:</strong>{" "}
+                When registering for the Android app or contacting support, you
+                may provide your email address, profile name, content
+                preferences, and related authentication identifiers.
               </li>
               <li>
-                <strong className="text-white">Media Files & Content Assets:</strong> To perform AI-powered rough cutting, beat-syncing, and smart reframing, the App accesses your local gallery media assets, video frames, and sound tracks. All raw processing is executed locally on your device hardware whenever possible. Content uploads for cloud rendering are cached temporarily and automatically deleted once the export timeline completes.
+                <strong className="text-white">
+                  Media Files & Content Assets:
+                </strong>{" "}
+                To perform AI-powered rough cutting, beat-syncing, and smart
+                reframing, the App accesses your local gallery media assets,
+                video frames, and sound tracks. All raw processing is executed
+                locally on your device hardware whenever possible. Content
+                uploads for cloud rendering are cached temporarily and
+                automatically deleted once the export timeline completes.
               </li>
               <li>
-                <strong className="text-white">Usage & System Metadata:</strong> We automatically collect standard telemetry regarding application stability, performance crashes, tool actions, UI selections, and aspect ratio profiles to prevent runtime layout distortion.
+                <strong className="text-white">Usage & System Metadata:</strong>{" "}
+                We automatically collect standard telemetry regarding
+                application stability, performance crashes, tool actions, UI
+                selections, and aspect ratio profiles to prevent runtime layout
+                distortion.
               </li>
               <li>
-                <strong className="text-white">Device Information:</strong> General parameters like device models, operating system details, screen dimensions, resolution, and IP addresses are referenced purely to support dynamic layout responsiveness.
+                <strong className="text-white">Device Information:</strong>{" "}
+                General parameters like device models, operating system details,
+                screen dimensions, resolution, and IP addresses are referenced
+                purely to support dynamic layout responsiveness.
               </li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">3</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                3
+              </span>
               How We Use Collected Information
             </h2>
             <p>
-              The gathered user information and metadata elements are channeled into the following operational workflows:
+              The gathered user information and metadata elements are channeled
+              into the following operational workflows:
             </p>
             <ul className="list-disc pl-5 space-y-2">
-              <li>To supply, configure, stabilize, and refine the core interactive editing timeline sandbox.</li>
-              <li>To execute automated visual-audio transient alignment (Beat-Sync cuts) and camera panning.</li>
-              <li>To deliver direct notifications, waitlist status alerts, and custom account information securely.</li>
-              <li>To process secure billing subscriptions and analytical performance summaries.</li>
-              <li>To comply with regulatory obligations and prevent service disruptions.</li>
+              <li>
+                To supply, configure, stabilize, and refine the core interactive
+                editing timeline sandbox.
+              </li>
+              <li>
+                To execute automated visual-audio transient alignment (Beat-Sync
+                cuts) and camera panning.
+              </li>
+              <li>
+                To deliver direct notifications, waitlist status alerts, and
+                custom account information securely.
+              </li>
+              <li>
+                To process secure billing subscriptions and analytical
+                performance summaries.
+              </li>
+              <li>
+                To comply with regulatory obligations and prevent service
+                disruptions.
+              </li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">4</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                4
+              </span>
               App Permissions Disclosure
             </h2>
             <p>
-              The application may request the following native mobile/web frame permissions during operational interactions:
+              The application may request the following native Android
+              permissions during operational interactions:
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong className="text-white">Storage / Photo Library access:</strong> Essential for selecting, trimming, and compiling local B-rolls or video clips onto timelines.
+                <strong className="text-white">
+                  Storage / Photo Library access:
+                </strong>{" "}
+                Essential for selecting, trimming, and compiling local B-rolls
+                or video clips onto timelines.
               </li>
               <li>
-                <strong className="text-white">Microphone / Audio inputs:</strong> Required if you use our voice caption overlay translation features.
+                <strong className="text-white">
+                  Microphone / Audio inputs:
+                </strong>{" "}
+                Required if you use our voice caption overlay translation
+                features.
               </li>
               <li>
-                <strong className="text-white">Camera access:</strong> Necessary if capturing live sequences directly inside the App sandbox.
+                <strong className="text-white">Camera access:</strong> Necessary
+                if capturing live sequences directly inside the App sandbox.
               </li>
             </ul>
             <p className="text-xs text-[#00D8FF] font-mono italic">
-              These permissions are requested only when active tools are initiated, and you may opt-out anytime through device settings.
+              These permissions are requested only when active tools are
+              initiated, and you may opt-out anytime through device settings.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">5</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                5
+              </span>
               Data Sharing & Third-Party Integrations
             </h2>
             <p>
-              We do not distribute, sell, trade, or lease your private personal details or compiled video assets to secondary advertising corporations. We only utilize trusted cloud partners to host our services:
+              We do not distribute, sell, trade, or lease your private personal
+              details or compiled video assets to secondary advertising
+              corporations. We only utilize trusted cloud partners to host our
+              services:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li><strong className="text-white">Google Cloud Run & Firestore:</strong> For running application instances and waitlist databases.</li>
-              <li><strong className="text-white">Firebase Authentication:</strong> For managing secure profile log-ins.</li>
-              <li><strong className="text-white">Google Play Console:</strong> For standard distribution analytics and billing processes.</li>
+              <li>
+                <strong className="text-white">
+                  Google Cloud Run & Firestore:
+                </strong>{" "}
+                For running application instances and waitlist databases.
+              </li>
+              <li>
+                <strong className="text-white">Firebase Authentication:</strong>{" "}
+                For managing secure profile log-ins.
+              </li>
+              <li>
+                <strong className="text-white">Google Play Console:</strong> For
+                standard distribution analytics and billing processes.
+              </li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">6</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                6
+              </span>
               Your Privacy Rights & Choices
             </h2>
             <p>
-              Under global security frameworks, you hold structural ownership over your shared personal information:
+              Under global security frameworks, you hold structural ownership
+              over your shared personal information:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>You may request complete access to all personal profile records cached in our databases.</li>
-              <li>You can correct, update, or completely delete your account registration at any time.</li>
-              <li>You may opt-out of marketing circulars or promotional updates by clicking unsubscribe.</li>
+              <li>
+                You may request complete access to all personal profile records
+                cached in our databases.
+              </li>
+              <li>
+                You can correct, update, or completely delete your account
+                registration at any time.
+              </li>
+              <li>
+                You may opt-out of marketing circulars or promotional updates by
+                clicking unsubscribe.
+              </li>
             </ul>
             <p>
-              To delete your Firebase / Google-linked ShotNode account, use our dedicated web form at{" "}
-              <Link to="/delete-account" className="text-[#00D8FF] font-mono hover:underline">
+              To delete your Firebase / Google-linked ShotNode account, use our
+              dedicated web form at{" "}
+              <Link
+                to="/delete-account"
+                className="text-[#00D8FF] font-mono hover:underline"
+              >
                 shotnode.pro/delete-account
               </Link>
               , or send a clear deletion instruction to{" "}
-              <a href="mailto:k.naveen6767@gmail.com" className="text-[#00D8FF] font-mono hover:underline">
+              <a
+                href="mailto:k.naveen6767@gmail.com"
+                className="text-[#00D8FF] font-mono hover:underline"
+              >
                 k.naveen6767@gmail.com
               </a>
               .
@@ -166,11 +269,16 @@ export default function PrivacyPolicy() {
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">7</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                7
+              </span>
               Operational Safety & Compliance
             </h2>
             <p>
-              We integrate high-standard safety mechanisms to guard against illegal leaks, alteration, or distribution of details. All transactions are proxied securely, and databases are strictly hardened with access controls.
+              We integrate high-standard safety mechanisms to guard against
+              illegal leaks, alteration, or distribution of details. All
+              transactions are proxied securely, and databases are strictly
+              hardened with access controls.
             </p>
           </section>
 
@@ -179,17 +287,32 @@ export default function PrivacyPolicy() {
               Contact & Representative Address
             </h2>
             <div className="space-y-2 text-xs leading-relaxed text-on-surface-variant">
-              <p className="font-semibold text-white">SECONDBRAIN VENTURES PRIVATE LIMITED</p>
-              <p>Seat BS2T4, H-1A/20, Sector 63, Noida, Uttar Pradesh - 201301, India</p>
-              <p>
-                Authorized email: <a href="mailto:k.naveen6767@gmail.com" className="text-[#00D8FF] font-mono hover:underline">k.naveen6767@gmail.com</a>
+              <p className="font-semibold text-white">
+                SECONDBRAIN VENTURES PRIVATE LIMITED
               </p>
               <p>
-                Inquiries regarding standard software licensing can also be directed to <span className="font-mono text-white">support@shotnode.ai</span>.
+                Seat BS2T4, H-1A/20, Sector 63, Noida, Uttar Pradesh - 201301,
+                India
+              </p>
+              <p>
+                Authorized email:{" "}
+                <a
+                  href="mailto:k.naveen6767@gmail.com"
+                  className="text-[#00D8FF] font-mono hover:underline"
+                >
+                  k.naveen6767@gmail.com
+                </a>
+              </p>
+              <p>
+                Inquiries regarding standard software licensing can also be
+                directed to{" "}
+                <span className="font-mono text-white">
+                  support@shotnode.ai
+                </span>
+                .
               </p>
             </div>
           </section>
-
         </div>
       </div>
     </div>

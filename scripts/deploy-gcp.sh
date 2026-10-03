@@ -14,12 +14,31 @@ case "${SHOTNODE_ENV}" in
   *) echo "SHOTNODE_ENV must be production|development" >&2; exit 1 ;;
 esac
 
-VM_NAME="${SHOTNODE_VM_NAME:-shotnode-dev}"
+# Staging: tradingbeast9@gmail.com / shotnode-dev-tb / shotnode-dev
+# Production: k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-prod (IAP SSH)
+if [[ "${SHOTNODE_ENV}" == "development" ]]; then
+  VM_NAME="${SHOTNODE_VM_NAME:-shotnode-dev}"
+  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-dev-tb}}"
+  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-tradingbeast9@gmail.com}}"
+  SHOTNODE_VM_USE_IAP="${SHOTNODE_VM_USE_IAP:-false}"
+else
+  VM_NAME="${SHOTNODE_VM_NAME:-shotnode-prod}"
+  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-prod-k6767-2026}}"
+  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-k.naveen6767@gmail.com}}"
+  SHOTNODE_VM_USE_IAP="${SHOTNODE_VM_USE_IAP:-true}"
+fi
 VM_ZONE="${SHOTNODE_VM_ZONE:-asia-south1-a}"
 VM_USER="${SHOTNODE_VM_SSH_USER:-naveenchoudhary}"
-VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-dev-cn}}"
-GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-cnaveen676767@gmail.com}}"
 GCLOUD_BIN="${GCLOUD_BIN:-gcloud}"
+
+if [[ "${SHOTNODE_ENV}" == "production" && "${VM_PROJECT}" != "shotnode-prod-k6767-2026" ]]; then
+  echo "Refusing production web deploy to project ${VM_PROJECT}." >&2
+  exit 1
+fi
+if [[ "${SHOTNODE_ENV}" == "development" && "${VM_PROJECT}" == "shotnode-prod-k6767-2026" ]]; then
+  echo "Refusing development web deploy onto the production project." >&2
+  exit 1
+fi
 
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
   DEPLOY_PATH="/var/www/shotnode-dev"
@@ -42,8 +61,24 @@ export CLOUDSDK_CORE_ACCOUNT="${GCLOUD_ACCOUNT}"
 export CLOUDSDK_CORE_PROJECT="${VM_PROJECT}"
 
 ssh_vm() {
-  "${GCLOUD_BIN}" compute ssh "${VM_USER}@${VM_NAME}" \
-    --zone="${VM_ZONE}" --project="${VM_PROJECT}" --command "$1"
+  if [[ "${SHOTNODE_VM_USE_IAP}" == "true" ]]; then
+    "${GCLOUD_BIN}" compute ssh "${VM_USER}@${VM_NAME}" \
+      --zone="${VM_ZONE}" --project="${VM_PROJECT}" \
+      --tunnel-through-iap --command "$1"
+  else
+    "${GCLOUD_BIN}" compute ssh "${VM_USER}@${VM_NAME}" \
+      --zone="${VM_ZONE}" --project="${VM_PROJECT}" --command "$1"
+  fi
+}
+
+scp_vm() {
+  if [[ "${SHOTNODE_VM_USE_IAP}" == "true" ]]; then
+    "${GCLOUD_BIN}" compute scp --tunnel-through-iap \
+      --zone="${VM_ZONE}" --project="${VM_PROJECT}" "$@"
+  else
+    "${GCLOUD_BIN}" compute scp \
+      --zone="${VM_ZONE}" --project="${VM_PROJECT}" "$@"
+  fi
 }
 
 echo "[deploy-web:${SHOTNODE_ENV}] → ${DEPLOY_PATH}"
@@ -66,8 +101,8 @@ COPYFILE_DISABLE=1 tar -C "${REPO_ROOT}" -czf "${TMP_TAR}" --format=ustar \
   --exclude='.git' --exclude='node_modules' --exclude='dist' --exclude='.env' .
 
 ssh_vm "sudo mkdir -p '${DEPLOY_PATH}' && sudo chown -R '${VM_USER}:www-data' '${DEPLOY_PATH}'"
-"${GCLOUD_BIN}" compute scp "${TMP_TAR}" "${VM_USER}@${VM_NAME}:/tmp/shotnode-web-src.tar.gz" --zone="${VM_ZONE}" --project="${VM_PROJECT}"
-"${GCLOUD_BIN}" compute scp "${NGINX_CONF_SRC}" "${VM_USER}@${VM_NAME}:/tmp/nginx-shotnode.conf" --zone="${VM_ZONE}" --project="${VM_PROJECT}"
+scp_vm "${TMP_TAR}" "${VM_USER}@${VM_NAME}:/tmp/shotnode-web-src.tar.gz"
+scp_vm "${NGINX_CONF_SRC}" "${VM_USER}@${VM_NAME}:/tmp/nginx-shotnode.conf"
 
 ssh_vm "DEPLOY_PATH='${DEPLOY_PATH}' NGINX_SITE='${NGINX_SITE}' BUILD_MODE='${BUILD_MODE}' bash -s" <<'REMOTE'
 set -euo pipefail

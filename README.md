@@ -1,6 +1,10 @@
 # ShotNode AI
 
-Marketing site for ShotNode — the AI video editor built for creators who move fast.
+Marketing site for ShotNode — the AI video editing app for Android. The site introduces the mobile app and sends download calls to action directly to Google Play.
+
+The phone preview is an interactive marketing illustration, not a recording of the Android app or a browser-based video editor. App pricing and purchase information are provided by Google Play and the app; this site does not collect payments or early-access registrations.
+
+The shared-project (`/r/:packageId`) and template (`/t/:templateId`) routes retain their API lookups and Android app links. The Google Play destination is shared through `src/components/DownloadLink.tsx`.
 
 **Full platform setup** (Android, backend, admin, this site): see [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md) in the Android monorepo.
 
@@ -30,33 +34,14 @@ npm start         # serve dist/ with the production Node server
 
 This is a static Vite + React app. Choose any platform below.
 
-### GCP VM (shotnode-dev)
+### GCP (two accounts)
 
-Production host on Google Cloud Compute:
+| Env | Command | Account | Project | VM | IP | Path |
+| --- | --- | --- | --- | --- | --- | --- |
+| Production | `SHOTNODE_ENV=production bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-prod-k6767-2026` | `shotnode-prod` | `34.93.135.34` | `/var/www/shotnode` |
+| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `tradingbeast9@gmail.com` | `shotnode-dev-tb` | `shotnode-dev` | `35.200.131.199` | `/var/www/shotnode-dev` |
 
-| Setting | Value |
-|---------|-------|
-| Project | `shotnode-backend` |
-| VM | `shotnode-dev` |
-| Zone | `asia-south1-a` |
-| IP | `34.100.189.134` |
-| App path | `/var/www/shotnode` |
-| Web root | `/var/www/shotnode/dist` |
-
-**Deploy / update** (installs nginx/Node on first run, then builds + reloads):
-
-```bash
-bash scripts/deploy-gcp.sh
-```
-
-**Enable HTTPS** (after DNS A record for `shotnode.pro` → `34.100.189.134`):
-
-```bash
-gcloud compute ssh naveenchoudhary@shotnode-dev --zone=asia-south1-a --project=shotnode-backend \
-  --command 'sudo certbot --nginx -d shotnode.pro -d www.shotnode.pro --non-interactive --agree-tos -m k.naveen6767@gmail.com'
-```
-
-**Live URL (before DNS):** http://34.100.189.134/
+Production SSH uses IAP. The deploy script adds `--tunnel-through-iap`. Live sites: https://shotnode.pro/ and https://staging.shotnode.pro/. Account setup is in the Android repo guide [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md).
 
 ### Vercel (recommended)
 
@@ -88,10 +73,10 @@ These platforms need a start command:
 
 ## Scripts
 
-| Command         | Description                          |
-| --------------- | ------------------------------------ |
-| `npm run dev`   | Start Vite dev server on port 3000   |
-| `npm run build` | Production build to `dist/`          |
-| `npm start`     | Serve `dist/` with Express           |
-| `npm run preview` | Preview production build locally |
-| `npm run lint`  | Type-check with TypeScript           |
+| Command           | Description                        |
+| ----------------- | ---------------------------------- |
+| `npm run dev`     | Start Vite dev server on port 3000 |
+| `npm run build`   | Production build to `dist/`        |
+| `npm start`       | Serve `dist/` with Express         |
+| `npm run preview` | Preview production build locally   |
+| `npm run lint`    | Type-check with TypeScript         |

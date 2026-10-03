@@ -5,7 +5,13 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Scale, FileText, CheckCircle, HelpCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Scale,
+  FileText,
+  CheckCircle,
+  HelpCircle,
+} from "lucide-react";
 
 export default function TermsOfService() {
   return (
@@ -35,113 +41,179 @@ export default function TermsOfService() {
               Terms of Service
             </h1>
             <p className="text-on-surface-variant text-sm sm:text-base">
-              Last Updated: June 24, 2026. Effective for ShotNode AI Applications and Operations.
+              Last Updated: September 18, 2026. Effective for ShotNode AI
+              Applications and Operations.
             </p>
           </div>
         </div>
 
         {/* Main Terms Document */}
         <div className="space-y-8 text-on-surface-variant text-sm leading-relaxed sm:text-base">
-          
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">1</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                1
+              </span>
               Acceptance of Terms
             </h2>
             <p>
-              By installing, downloading, registering, or accessing any service, mobile application, or timeline sandbox feature offered by <strong>SECONDBRAIN VENTURES PRIVATE LIMITED</strong> ("ShotNode AI", "Company", "We", "Our", or "Us"), you unconditionally agree to comply with and be bound by these Terms of Service.
+              By installing, downloading, registering, or accessing any service,
+              mobile application, or timeline sandbox feature offered by{" "}
+              <strong>SECONDBRAIN VENTURES PRIVATE LIMITED</strong> ("ShotNode
+              AI", "Company", "We", "Our", or "Us"), you unconditionally agree
+              to comply with and be bound by these Terms of Service.
             </p>
             <p>
-              If you do not agree to all specifications or legal clauses listed herein, you are strictly prohibited from utilizing the App or associated cloud servers.
+              If you do not agree to all specifications or legal clauses listed
+              herein, you are strictly prohibited from utilizing the App or
+              associated cloud servers.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">2</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                2
+              </span>
               Limited Software License Grant
             </h2>
             <p>
-              We grant you a non-exclusive, non-transferable, revocable, limited license to run the ShotNode AI executable binary and use its web editing platform solely for your personal or authorized professional video production workflows. This license is subject to compliance with our guidelines:
+              We grant you a non-exclusive, non-transferable, revocable, limited
+              license to install and use the ShotNode Android mobile app solely
+              for your personal or authorized professional video production
+              workflows. This license is subject to compliance with our
+              guidelines:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>You may not modify, reverse engineer, decompile, translate, or copy the source code of our App.</li>
-              <li>You may not distribute, lease, sell, or sublicense the software components to external operators.</li>
-              <li>You may not inject automated scripts, web scrapers, or telemetry interception tools into the timeline engine.</li>
+              <li>
+                You may not modify, reverse engineer, decompile, translate, or
+                copy the source code of our App.
+              </li>
+              <li>
+                You may not distribute, lease, sell, or sublicense the software
+                components to external operators.
+              </li>
+              <li>
+                You may not inject automated scripts, web scrapers, or telemetry
+                interception tools into the timeline engine.
+              </li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">3</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                3
+              </span>
               Intellectual Property Rights
             </h2>
             <p>
-              The entire architectural design, layout styles, logo components, dynamic graphics, source codes, proprietary beat-sync algorithms, custom visual-audio models, sound scanning vectors, and branding marks associated with ShotNode AI are the exclusive intellectual property of <strong>SECONDBRAIN VENTURES PRIVATE LIMITED</strong>.
+              The entire architectural design, layout styles, logo components,
+              dynamic graphics, source codes, proprietary beat-sync algorithms,
+              custom visual-audio models, sound scanning vectors, and branding
+              marks associated with ShotNode AI are the exclusive intellectual
+              property of <strong>SECONDBRAIN VENTURES PRIVATE LIMITED</strong>.
             </p>
             <p>
-              All video assets, rough clips, soundtrack additions, and raw timelines compiled or created by you inside the editing sandbox remain your exclusive property. We do not claim intellectual ownership or distribution rights over user-generated timelines.
+              All video assets, rough clips, soundtrack additions, and raw
+              timelines compiled or created by you inside the editing sandbox
+              remain your exclusive property. We do not claim intellectual
+              ownership or distribution rights over user-generated timelines.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">4</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                4
+              </span>
               Subscription Plans, Fees, & Billing Cycles
             </h2>
             <p>
-              Standard early beta access to ShotNode is supplied free of charge. Full unlock of Creator Pro tiers requires active billing registration:
+              Current app pricing and any available in-app purchases are shown
+              in ShotNode and on its Google Play listing. Review the price,
+              billing period, and applicable purchase terms before confirming a
+              purchase. This website does not sell subscriptions or collect
+              payments.
             </p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>Fees are collected on an automated periodic cycle (Monthly or Annually) as selected.</li>
-              <li>Annual billing models receive up to 30% discount profiles as declared in our pricing section.</li>
-              <li>All subscription cancellations must be filed at least 48 hours prior to the next billing date.</li>
-              <li>Refund requests are handled on a case-by-case basis according to Play Store distribution frameworks.</li>
-            </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">5</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                5
+              </span>
               Prohibited Content & Actions
             </h2>
             <p>
-              When utilizing our AI-powered natural language prompt input and cloud rendering infrastructure, you agree never to submit content that:
+              When utilizing our AI-powered natural language prompt input and
+              cloud rendering infrastructure, you agree never to submit content
+              that:
             </p>
             <ul className="list-disc pl-5 space-y-1.5">
-              <li>Violates intellectual copyrights, trademarks, or visual licensing rules of other entities.</li>
-              <li>Contains illegal visual assets, violence, harassment, or defamatory messaging.</li>
-              <li>Attempts to intentionally crash the rendering queue servers or inject malicious scripts.</li>
+              <li>
+                Violates intellectual copyrights, trademarks, or visual
+                licensing rules of other entities.
+              </li>
+              <li>
+                Contains illegal visual assets, violence, harassment, or
+                defamatory messaging.
+              </li>
+              <li>
+                Attempts to intentionally crash the rendering queue servers or
+                inject malicious scripts.
+              </li>
             </ul>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">6</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                6
+              </span>
               Disclaimer of Warranties
             </h2>
             <p className="italic text-gray-400">
-              ShotNode AI is provided strictly on an "AS IS" and "AS AVAILABLE" basis. SECONDBRAIN VENTURES PRIVATE LIMITED disclaims all representations, warranties, or assurances of any kind, whether express, statutory, or implied, including warranties of merchantability, timeline rendering speed, continuous cloud uptime, or fitment for specific social distribution targets.
+              ShotNode AI is provided strictly on an "AS IS" and "AS AVAILABLE"
+              basis. SECONDBRAIN VENTURES PRIVATE LIMITED disclaims all
+              representations, warranties, or assurances of any kind, whether
+              express, statutory, or implied, including warranties of
+              merchantability, timeline rendering speed, continuous cloud
+              uptime, or fitment for specific social distribution targets.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">7</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                7
+              </span>
               Limitation of Liability
             </h2>
             <p>
-              To the fullest extent permitted by governing laws, SECONDBRAIN VENTURES PRIVATE LIMITED, its directors, developers, or operational agents shall not be liable for any indirect, consequential, special, punitive, or incidental damages, including loss of creative files, timeline rendering delays, GPU cloud server downtime, or loss of marketing revenue arising from the use of the App.
+              To the fullest extent permitted by governing laws, SECONDBRAIN
+              VENTURES PRIVATE LIMITED, its directors, developers, or
+              operational agents shall not be liable for any indirect,
+              consequential, special, punitive, or incidental damages, including
+              loss of creative files, timeline rendering delays, GPU cloud
+              server downtime, or loss of marketing revenue arising from the use
+              of the App.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">8</span>
+              <span className="text-xs font-mono text-[#00D8FF] border border-[#00D8FF]/30 px-1.5 py-0.5 rounded">
+                8
+              </span>
               Governing Law & Jurisdiction
             </h2>
             <p>
-              These Terms of Service are governed, construed, and enforced in accordance with the laws of Uttar Pradesh, India. Any legal dispute, claim, or litigation arising out of our application or operations shall be subject to the exclusive jurisdiction of the state courts located in Noida, Uttar Pradesh, India.
+              These Terms of Service are governed, construed, and enforced in
+              accordance with the laws of Uttar Pradesh, India. Any legal
+              dispute, claim, or litigation arising out of our application or
+              operations shall be subject to the exclusive jurisdiction of the
+              state courts located in Noida, Uttar Pradesh, India.
             </p>
           </section>
 
@@ -150,17 +222,31 @@ export default function TermsOfService() {
               Corporate Office & Registered Address
             </h2>
             <div className="space-y-2 text-xs leading-relaxed text-on-surface-variant">
-              <p className="font-semibold text-white">SECONDBRAIN VENTURES PRIVATE LIMITED</p>
-              <p>Seat BS2T4, H-1A/20, Sector 63, Noida, Uttar Pradesh - 201301, India</p>
-              <p>
-                Authorized contact email: <a href="mailto:k.naveen6767@gmail.com" className="text-[#00D8FF] font-mono hover:underline">k.naveen6767@gmail.com</a>
+              <p className="font-semibold text-white">
+                SECONDBRAIN VENTURES PRIVATE LIMITED
               </p>
               <p>
-                Inquiries regarding standard legal terms can be forwarded to <span className="font-mono text-white">support@shotnode.ai</span>.
+                Seat BS2T4, H-1A/20, Sector 63, Noida, Uttar Pradesh - 201301,
+                India
+              </p>
+              <p>
+                Authorized contact email:{" "}
+                <a
+                  href="mailto:k.naveen6767@gmail.com"
+                  className="text-[#00D8FF] font-mono hover:underline"
+                >
+                  k.naveen6767@gmail.com
+                </a>
+              </p>
+              <p>
+                Inquiries regarding standard legal terms can be forwarded to{" "}
+                <span className="font-mono text-white">
+                  support@shotnode.ai
+                </span>
+                .
               </p>
             </div>
           </section>
-
         </div>
       </div>
     </div>

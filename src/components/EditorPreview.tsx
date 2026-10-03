@@ -1,201 +1,243 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  Check,
+  Music2,
+  Pause,
+  Play,
+  RotateCcw,
+  Smartphone,
+  Sparkles,
+  Subtitles,
+} from "lucide-react";
 
-import React, { useState, useEffect } from "react";
-import { motion } from "motion/react";
-import { Play, Pause, Waves, Crop, Subtitles, Activity, HelpCircle } from "lucide-react";
+const projects = [
+  {
+    name: "A summer in Italy",
+    label: "Travel reel",
+    image: "/images/coast.jpg",
+    title: "Somewhere",
+    subtitle: "you’d rather be.",
+    prompt: "Make this travel reel feel like an endless summer.",
+  },
+  {
+    name: "The slow weekend",
+    label: "Lifestyle",
+    image: "/images/beach.jpg",
+    title: "Take it",
+    subtitle: "a little slower.",
+    prompt: "Give my weekend clips a warm, relaxed feel.",
+  },
+  {
+    name: "Beyond the everyday",
+    label: "Adventure",
+    image: "/images/mountains.jpg",
+    title: "Find your",
+    subtitle: "next adventure.",
+    prompt: "Make this mountain adventure feel cinematic.",
+  },
+];
 
 export default function EditorPreview() {
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [activeNodes, setActiveNodes] = useState({
-    beatSync: true,
-    smartReframe: true,
-    autoCaptions: true,
-    motionDna: false,
-  });
-  const [timelineSec, setTimelineSec] = useState(0);
-
-  // Playback timer loop
+  const [selected, setSelected] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [time, setTime] = useState(0);
+  const [captions, setCaptions] = useState(true);
+  const [beatSync, setBeatSync] = useState(true);
+  const [prompt, setPrompt] = useState(projects[0].prompt);
+  const [applied, setApplied] = useState(false);
+  const project = projects[selected];
   useEffect(() => {
-    if (!isPlaying) return;
-
-    const interval = setInterval(() => {
-      setTimelineSec((prev) => {
-        const next = prev + 0.1;
-        return next >= 10 ? 0 : next;
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isPlaying]);
-
-  const toggleNode = (node: keyof typeof activeNodes) => {
-    setActiveNodes((prev) => ({
-      ...prev,
-      [node]: !prev[node],
-    }));
-  };
-
+    if (!playing) return;
+    const timer = window.setInterval(
+      () => setTime((value) => (value + 1) % 31),
+      1000,
+    );
+    return () => window.clearInterval(timer);
+  }, [playing]);
   return (
-    <div id="editor-mockup-interactive" className="relative h-[550px] w-full perspective-1000 z-10">
-      {/* Soft screen glow illuminating the dark space */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#147CFF]/30 to-[#00D8FF]/10 blur-[100px] rounded-full pointer-events-none opacity-80" />
-
-      {/* Editor Mockup Canvas Frame */}
-      <div className="absolute inset-0 glass-modal rounded-2xl transform lg:rotate-y-[-8deg] lg:rotate-x-[4deg] lg:hover:rotate-y-0 lg:hover:rotate-x-0 scale-95 hover:scale-100 transition-all duration-700 flex flex-col justify-between overflow-hidden border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
-        {/* Background sample mockup representation */}
+    <section
+      id="product-demo"
+      className="mobile-showcase"
+      aria-label="Illustrative mobile editing preview"
+    >
+      <div className="mobile-showcase-copy">
+        <span className="eyebrow">
+          <span /> BIG IDEAS. POCKET-SIZED STUDIO.
+        </span>
+        <h2>
+          Made for the
+          <br />
+          way you <em>move.</em>
+        </h2>
+        <p>
+          Your footage is already on your phone.
+          <br />
+          Now your creative studio is, too.
+        </p>
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-70 mix-blend-screen pointer-events-none"
-          style={{
-            backgroundImage: `url('https://lh3.googleusercontent.com/aida-public/AB6AXuD0nT6fkWtiF-Xp0qo_uOwtmhjcMq9qnyYPT7o3gvwwbL5i7cBSijVDCcRoJQwQJUlaDR4GLP6JncMBPPW61DK4Eg02v315YxU3Rlq7yaNXUNm-MqmRK6M-rUXDvloC7IuzYruene0Nju41AN-04L0C8ObJPCSpZbrtyb0lTUuJympKPTCTTJxaeQIgd7YgAUKOkghRzy7TGLfV8A_BrRXwEpk8jJ-ahXEpLRn9iWFi8UQw5MlNuk2tFWisUU3ZQLUaFbW5dmJDKSia')`,
-          }}
-        />
-
-        {/* Top Control Bar inside mockup */}
-        <div className="p-3 bg-black/60 border-b border-white/5 backdrop-blur-md flex items-center justify-between z-10">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00D8FF] animate-pulse" />
-            <span className="font-mono text-[9px] text-[#00D8FF] font-bold uppercase tracking-widest">
-              Live Rendering
-            </span>
-          </div>
-          <span className="font-mono text-[10px] text-gray-400">
-            00:0{timelineSec.toFixed(1)} / 00:10.0
+          className="mobile-demo-tabs"
+          role="group"
+          aria-label="Example projects"
+        >
+          {projects.map((item, index) => (
+            <button
+              key={item.label}
+              aria-pressed={selected === index}
+              onClick={() => {
+                setSelected(index);
+                setPrompt(item.prompt);
+                setTime(0);
+                setPlaying(false);
+                setApplied(false);
+              }}
+            >
+              {item.label}
+              {selected === index && <Check size={13} />}
+            </button>
+          ))}
+        </div>
+        <div className="mobile-demo-caption">
+          <Smartphone size={15} />
+          <span>
+            Interactive illustration of mobile editing.
+            <br />
+            Not an app screenshot or a working video editor.
           </span>
         </div>
-
-        {/* Live overlay elements mimicking the selected options */}
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-          {/* Wave ripple representing active beat sync */}
-          {activeNodes.beatSync && isPlaying && (
-            <motion.div
-              animate={{
-                scale: [1, 1.25, 1],
-                opacity: [0.3, 0.6, 0.3],
+      </div>
+      <div className="phone-stage">
+        <div className="phone-frame">
+          <div className="phone-camera" aria-hidden="true" />
+          <div className="phone-project">
+            <ArrowLeft size={16} aria-hidden="true" />
+            <span>{project.name}</span>
+            <span className="phone-example">DEMO</span>
+          </div>
+          <div
+            className={`phone-video ${playing ? "phone-playing" : ""}`}
+            style={{ backgroundImage: `url(${project.image})` }}
+          >
+            <span className="phone-video-overline">A SHOTNODE STORY</span>
+            {captions && (
+              <div className="phone-video-title">
+                {project.title}
+                <br />
+                <em>{project.subtitle}</em>
+              </div>
+            )}
+            <span className="phone-video-footer">
+              LITTLE MOMENTS. YOUR STORY.
+            </span>
+          </div>
+          <div className="phone-playback">
+            <span>
+              00:{String(time).padStart(2, "0")} <small>/ 00:30</small>
+            </span>
+            <button
+              aria-label={playing ? "Pause preview" : "Play preview"}
+              onClick={() => setPlaying(!playing)}
+            >
+              {playing ? (
+                <Pause size={15} fill="currentColor" />
+              ) : (
+                <Play size={15} fill="currentColor" />
+              )}
+            </button>
+            <button
+              aria-label="Restart preview"
+              onClick={() => {
+                setTime(0);
+                setPlaying(false);
               }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                ease: "easeOut",
-              }}
-              className="absolute w-48 h-48 border border-[#00D8FF]/40 rounded-full"
-            />
-          )}
-
-          {/* Focal tracking box representing Smart Reframe */}
-          {activeNodes.smartReframe && (
-            <div className="absolute w-32 h-32 border-2 border-dashed border-[#147CFF] rounded-lg flex items-center justify-center">
-              <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-cyan-400" />
-              <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-cyan-400" />
-              <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-cyan-400" />
-              <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-cyan-400" />
-              <span className="text-[9px] font-mono text-[#00D8FF] uppercase tracking-wider bg-black/75 px-1 rounded">
-                Focus Lock
-              </span>
+            >
+              <RotateCcw size={14} />
+            </button>
+          </div>
+          <div className="phone-timeline">
+            <div className="phone-clips">
+              {[0, 1, 2, 0, 1, 2].map((offset, index) => (
+                <div
+                  key={index}
+                  style={{
+                    backgroundImage: `url(${projects[(selected + offset) % 3].image})`,
+                  }}
+                />
+              ))}
             </div>
-          )}
-
-          {/* Captions Overlay representation */}
-          {activeNodes.autoCaptions && isPlaying && (
-            <div className="absolute bottom-16 left-4 right-4 text-center">
-              <p className="inline-block bg-black/80 backdrop-blur-sm border border-white/10 px-2 py-1 rounded text-[10px] font-medium text-white max-w-[180px] truncate shadow-lg">
-                💬 {timelineSec < 3.3 ? "Analyzing sound waveform..." : timelineSec < 6.6 ? "Auto synchronization complete!" : "Ready to render 4K ProRes."}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Interactive Play Controller at center */}
-        <button
-          id="preview-play-toggle"
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 border border-white/20 hover:bg-[#147CFF]/20 hover:border-[#00D8FF] transition-all flex items-center justify-center z-20 text-white cursor-pointer shadow-xl backdrop-blur-md"
-        >
-          {isPlaying ? <Pause className="w-5 h-5 text-[#00D8FF]" /> : <Play className="w-5 h-5 text-white fill-white" />}
-        </button>
-
-        {/* Floating Interactive Controller Nodes outside the screen but connected via styling */}
-        {/* Node 1: Beat Sync Active */}
-        <div className="absolute top-1/4 left-6 z-20 pointer-events-auto">
-          <button
-            id="node-toggle-beatsync"
-            onClick={() => toggleNode("beatSync")}
-            className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-medium flex items-center gap-1.5 transition-all shadow-lg ${
-              activeNodes.beatSync
-                ? "border-[#00D8FF] bg-[#02060C]/90 text-white shadow-[#00D8FF]/10"
-                : "border-white/10 bg-[#02060C]/60 text-gray-500"
-            }`}
-          >
-            <Waves className={`w-3.5 h-3.5 ${activeNodes.beatSync ? "text-[#00D8FF]" : "text-gray-500"}`} />
-            <span>Beat Sync Active</span>
-          </button>
-        </div>
-
-        {/* Node 2: Smart Reframe */}
-        <div className="absolute bottom-1/3 right-6 z-20 pointer-events-auto">
-          <button
-            id="node-toggle-reframe"
-            onClick={() => toggleNode("smartReframe")}
-            className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-medium flex items-center gap-1.5 transition-all shadow-lg ${
-              activeNodes.smartReframe
-                ? "border-[#147CFF] bg-[#02060C]/90 text-white shadow-[#147CFF]/10"
-                : "border-white/10 bg-[#02060C]/60 text-gray-500"
-            }`}
-          >
-            <Crop className={`w-3.5 h-3.5 ${activeNodes.smartReframe ? "text-[#147CFF]" : "text-gray-500"}`} />
-            <span>Smart Reframe</span>
-          </button>
-        </div>
-
-        {/* Node 3: Auto Captions */}
-        <div className="absolute top-[15%] right-8 z-20 pointer-events-auto">
-          <button
-            id="node-toggle-captions"
-            onClick={() => toggleNode("autoCaptions")}
-            className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-medium flex items-center gap-1.5 transition-all shadow-lg ${
-              activeNodes.autoCaptions
-                ? "border-[#00D8FF] bg-[#02060C]/90 text-white shadow-[#00D8FF]/10"
-                : "border-white/10 bg-[#02060C]/60 text-gray-500"
-            }`}
-          >
-            <Subtitles className={`w-3.5 h-3.5 ${activeNodes.autoCaptions ? "text-[#00D8FF]" : "text-gray-500"}`} />
-            <span>Auto Captions</span>
-          </button>
-        </div>
-
-        {/* Node 4: Motion DNA */}
-        <div className="absolute bottom-1/4 left-8 z-20 pointer-events-auto">
-          <button
-            id="node-toggle-motion"
-            onClick={() => toggleNode("motionDna")}
-            className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-medium flex items-center gap-1.5 transition-all shadow-lg ${
-              activeNodes.motionDna
-                ? "border-[#147CFF] bg-[#02060C]/90 text-white shadow-[#147CFF]/10"
-                : "border-white/10 bg-[#02060C]/60 text-gray-500"
-            }`}
-          >
-            <Activity className={`w-3.5 h-3.5 ${activeNodes.motionDna ? "text-[#147CFF]" : "text-gray-500"}`} />
-            <span>Motion DNA</span>
-          </button>
-        </div>
-
-        {/* Simulated Timeline Track indicators at bottom */}
-        <div className="p-4 bg-black/80 border-t border-white/5 z-10 space-y-2">
-          {/* Horizontal progress meter */}
-          <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
             <div
-              style={{ width: `${(timelineSec / 10) * 100}%` }}
-              className="h-full bg-gradient-to-r from-[#147CFF] to-[#00D8FF]"
+              className={`phone-wave ${beatSync ? "" : "is-muted"}`}
+              aria-hidden="true"
+            >
+              {Array.from({ length: 55 }, (_, i) => (
+                <i key={i} style={{ height: `${4 + ((i * 13) % 17)}px` }} />
+              ))}
+            </div>
+            <div
+              className="phone-playhead"
+              style={{ left: `${(time / 30) * 100}%` }}
             />
           </div>
-          <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest">
-            <span>Video Track 01</span>
-            <span>00:10.0</span>
+          <div className="phone-tools">
+            <button
+              aria-pressed={beatSync}
+              onClick={() => setBeatSync(!beatSync)}
+            >
+              <Music2 size={14} />
+              Beat sync<span>{beatSync ? "On" : "Off"}</span>
+            </button>
+            <button
+              aria-pressed={captions}
+              onClick={() => setCaptions(!captions)}
+            >
+              <Subtitles size={14} />
+              Captions<span>{captions ? "On" : "Off"}</span>
+            </button>
           </div>
+          <form
+            className="phone-prompt"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!prompt.trim()) return;
+              setCaptions(!/no captions|remove captions/i.test(prompt));
+              setBeatSync(!/no beat|disable beat/i.test(prompt));
+              setApplied(true);
+            }}
+          >
+            <label htmlFor="demo-prompt">
+              <Sparkles size={13} /> Describe your edit
+            </label>
+            <div>
+              <input
+                id="demo-prompt"
+                value={prompt}
+                onChange={(event) => {
+                  setPrompt(event.target.value);
+                  setApplied(false);
+                }}
+              />
+              <button aria-label="Apply demo prompt" disabled={!prompt.trim()}>
+                <ArrowUp size={16} />
+              </button>
+            </div>
+            <span className="phone-prompt-status" role="status">
+              {applied
+                ? "Preview updated. Make it your own."
+                : "Try “remove captions” in this demo."}
+            </span>
+          </form>
+          <div className="phone-home-indicator" aria-hidden="true" />
+        </div>
+        <div className="phone-floating-note">
+          <Sparkles size={17} />
+          <span>
+            Your next story.
+            <br />
+            <strong>Right at your fingertips.</strong>
+          </span>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

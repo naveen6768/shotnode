@@ -6,9 +6,14 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     if (hash) {
-      const el = document.querySelector(hash);
+      const el = document.getElementById(hash.slice(1));
       if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
+        el.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
+            ? "auto"
+            : "smooth",
+        });
         return;
       }
     }

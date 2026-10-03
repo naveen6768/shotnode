@@ -1,101 +1,73 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Plus, Minus, HelpCircle } from "lucide-react";
-import { FAQItem } from "../types";
-
-const FAQ_ITEMS: FAQItem[] = [
-  {
-    id: "q1",
-    question: "How does ShotNode's AI Beat Syncing technology work?",
-    answer: "ShotNode features a high-performance deep acoustic engine that scans audio files to map transient waves, baseline beats, and key audio drops. It then aligns visual edits and clip transitions precisely with those timestamps automatically, delivering professionally paced cinematic loops in seconds.",
-  },
-  {
-    id: "q2",
-    question: "Which export codecs and dimensions are supported?",
-    answer: "Our Free plan supports up to 720p H.264 standard exports. Creator Pro expands this to include full 4K ProRes 422/4444 and high-fidelity HEVC, perfect for pro editors. You can render widescreen 16:9, vertical 9:16, or square 1:1 format outputs in parallel.",
-  },
-  {
-    id: "q3",
-    question: "Can I import custom LUT color files and camera assets?",
-    answer: "Absolutely. Creator Pro and Studio plan tiers allow you to drag and drop custom 3D LUT files (.cube format) to keep color grading consistent across your projects, alongside our proprietary smart stylistic color filters.",
-  },
-  {
-    id: "q4",
-    question: "Is there an offline mobile or desktop version available?",
-    answer: "Yes, ShotNode is available as a web portal, a macOS/Windows desktop shell for heavy workstation rendering, and our Android/iOS native apps which feature full hardware-accelerated timeline previews.",
-  },
-  {
-    id: "q5",
-    question: "How does the Command Prompt AI process natural language instructions?",
-    answer: "We use high-context LLM models server-side to interpret creative prompts like 'Make it energetic with dramatic cinematic color grading' into functional instructions: selecting the fastest b-rolls, applying high-contrast LUTs, accelerating keyframes, and matching cuts to acoustic drop frames.",
-  },
+import { useState } from "react";
+import { ArrowUpRight, Plus, Minus } from "lucide-react";
+const items = [
+  [
+    "What is ShotNode?",
+    "ShotNode is an AI-assisted video editing app for Android, designed to turn your footage and creative direction into an edit. Describe the mood and pacing, then refine the result to make it your own.",
+  ],
+  [
+    "Where can I use it?",
+    "ShotNode is currently available as an Android mobile app. Download it from Google Play to edit your own footage on your phone. This website introduces the app; it is not an online editor.",
+  ],
+  [
+    "Do I need editing experience?",
+    "You can start with your clips and a plain-language idea. The goal is to make the first cut easier, while keeping room for you to review and adjust the details.",
+  ],
+  [
+    "Can I still control the final edit?",
+    "Yes. AI helps with the groundwork; you decide the creative direction. Review your cut, adjust the timing and framing, and shape the story before you share it.",
+  ],
+  [
+    "Is the preview on this page a real editor?",
+    "It’s an interactive illustration of a mobile editing workflow, not a recording of the app. Switch example projects, play the sample timeline, and toggle captions or beat sync. It does not upload, process, or export your videos. Get the Android app to work with your own footage.",
+  ],
+  [
+    "Where can I find app pricing?",
+    "Check ShotNode’s Google Play listing and the app for current pricing and any available purchases. This website does not sell subscriptions or take payments.",
+  ],
 ];
-
 export default function FAQAccordion() {
-  const [openId, setOpenId] = useState<string | null>(null);
-
-  const toggleItem = (id: string) => {
-    setOpenId((prev) => (prev === id ? null : id));
-  };
-
+  const [open, setOpen] = useState<number | null>(0);
   return (
-    <section id="faq-section" className="py-24 px-margin-mobile md:px-margin-desktop max-w-4xl mx-auto relative border-t border-white/5">
-      <div className="text-center mb-16 space-y-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-[#147CFF]/5 border border-[#147CFF]/15 text-xs font-mono text-[#00D8FF] uppercase tracking-widest">
-          <HelpCircle className="w-3.5 h-3.5" />
-          General FAQ
-        </div>
-        <h2 className="font-sans font-bold text-3xl sm:text-4xl text-white tracking-tight">
-          Frequently Answered Inquiries
+    <section className="faq-section section-space container" id="faq-section">
+      <div className="faq-heading">
+        <span className="eyebrow">
+          <span /> GOOD QUESTIONS
+        </span>
+        <h2>
+          A little
+          <br />
+          more <em>clarity.</em>
         </h2>
-        <p className="text-on-surface-variant text-sm sm:text-base max-w-lg mx-auto">
-          Learn how ShotNode combines machine learning with technical timeline orchestration.
-        </p>
+        <p>Something else on your mind?</p>
+        <a className="text-link" href="mailto:k.naveen6767@gmail.com">
+          Talk to the team <ArrowUpRight size={16} />
+        </a>
       </div>
-
-      <div className="space-y-4">
-        {FAQ_ITEMS.map((item) => {
-          const isOpen = openId === item.id;
-          return (
-            <div
-              key={item.id}
-              className="rounded-xl border border-white/5 bg-white/[0.01] overflow-hidden hover:border-white/10 transition-all duration-300"
-            >
+      <div className="faq-list">
+        {items.map(([question, answer], index) => (
+          <div className="faq-item" key={question}>
+            <h3>
               <button
-                id={`faq-btn-${item.id}`}
-                onClick={() => toggleItem(item.id)}
-                className="w-full flex items-center justify-between p-6 text-left text-white focus:outline-none focus:bg-white/[0.02]"
+                aria-expanded={open === index}
+                aria-controls={`faq-answer-${index}`}
+                id={`faq-question-${index}`}
+                onClick={() => setOpen(open === index ? null : index)}
               >
-                <span className="font-sans font-semibold text-base sm:text-lg tracking-tight pr-4">
-                  {item.question}
-                </span>
-                <span className="flex-shrink-0 p-1.5 rounded-lg bg-white/5 border border-white/10 text-on-surface-variant group-hover:text-white">
-                  {isOpen ? <Minus className="w-4 h-4 text-[#00D8FF]" /> : <Plus className="w-4 h-4" />}
-                </span>
+                {question}
+                {open === index ? <Minus size={17} /> : <Plus size={17} />}
               </button>
-
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                  >
-                    <div className="px-6 pb-6 pt-1 text-on-surface-variant text-sm leading-relaxed border-t border-white/[0.03] bg-black/20">
-                      {item.answer}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            </h3>
+            <div
+              id={`faq-answer-${index}`}
+              role="region"
+              aria-labelledby={`faq-question-${index}`}
+              hidden={open !== index}
+            >
+              <p>{answer}</p>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </section>
   );
