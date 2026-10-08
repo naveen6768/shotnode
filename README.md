@@ -39,9 +39,9 @@ This is a static Vite + React app. Choose any platform below.
 | Env | Command | Account | Project | VM | IP | Path |
 | --- | --- | --- | --- | --- | --- | --- |
 | Production | `SHOTNODE_ENV=production bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-prod-k6767-2026` | `shotnode-prod` | `34.93.135.34` | `/var/www/shotnode` |
-| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `tradingbeast9@gmail.com` | `shotnode-dev-tb` | `shotnode-dev` | `35.200.131.199` | `/var/www/shotnode-dev` |
+| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-prod-k6767-2026` | `shotnode-staging` | `34.14.147.162` | `/var/www/shotnode-dev` |
 
-Production SSH uses IAP. The deploy script adds `--tunnel-through-iap`. Live sites: https://shotnode.pro/ and https://staging.shotnode.pro/. Account setup is in the Android repo guide [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md).
+Staging and production SSH use IAP. The deploy script adds `--tunnel-through-iap`. Live sites: https://shotnode.pro/ and https://staging.shotnode.pro/. Account setup is in the Android repo guide [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md).
 
 ### Vercel (recommended)
 
