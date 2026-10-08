@@ -14,13 +14,39 @@ case "${SHOTNODE_ENV}" in
   *) echo "SHOTNODE_ENV must be production|development" >&2; exit 1 ;;
 esac
 
-# Staging: tradingbeast9@gmail.com / shotnode-dev-tb / shotnode-dev
-# Production: k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-prod (IAP SSH)
+DRY_VM_NAME=""
+DRY_VM_PROJECT=""
+DRY_ACCOUNT=""
+DRY_IAP=""
+if [[ "${SHOTNODE_DEPLOY_DRY_GUARD:-}" == "1" ]]; then
+  DRY_VM_NAME="${SHOTNODE_VM_NAME:-}"
+  DRY_VM_PROJECT="${SHOTNODE_VM_PROJECT:-}"
+  DRY_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-}}"
+  DRY_IAP="${SHOTNODE_VM_USE_IAP:-}"
+fi
+ENV_FILE="${REPO_ROOT}/.env.${SHOTNODE_ENV}"
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "${ENV_FILE}"
+  set +a
+fi
+if [[ "${SHOTNODE_DEPLOY_DRY_GUARD:-}" == "1" ]]; then
+  [[ -n "${DRY_VM_NAME}" ]] && SHOTNODE_VM_NAME="${DRY_VM_NAME}"
+  [[ -n "${DRY_VM_PROJECT}" ]] && SHOTNODE_VM_PROJECT="${DRY_VM_PROJECT}"
+  [[ -n "${DRY_ACCOUNT}" ]] && SHOTNODE_GCLOUD_ACCOUNT="${DRY_ACCOUNT}"
+  [[ -n "${DRY_ACCOUNT}" ]] && SHOTNODE_GCP_ACCOUNT="${DRY_ACCOUNT}"
+  [[ -n "${DRY_IAP}" ]] && SHOTNODE_VM_USE_IAP="${DRY_IAP}"
+fi
+
+# Staging web: k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-staging (IAP SSH)
+# Production:  k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-prod (IAP SSH)
+# Android build lanes stay on tradingbeast9@gmail.com / shotnode-dev-tb / shotnode-dev.
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
-  VM_NAME="${SHOTNODE_VM_NAME:-shotnode-dev}"
-  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-dev-tb}}"
-  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-tradingbeast9@gmail.com}}"
-  SHOTNODE_VM_USE_IAP="${SHOTNODE_VM_USE_IAP:-false}"
+  VM_NAME="${SHOTNODE_VM_NAME:-shotnode-staging}"
+  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-prod-k6767-2026}}"
+  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-k.naveen6767@gmail.com}}"
+  SHOTNODE_VM_USE_IAP="${SHOTNODE_VM_USE_IAP:-true}"
 else
   VM_NAME="${SHOTNODE_VM_NAME:-shotnode-prod}"
   VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-prod-k6767-2026}}"
@@ -31,13 +57,27 @@ VM_ZONE="${SHOTNODE_VM_ZONE:-asia-south1-a}"
 VM_USER="${SHOTNODE_VM_SSH_USER:-naveenchoudhary}"
 GCLOUD_BIN="${GCLOUD_BIN:-gcloud}"
 
-if [[ "${SHOTNODE_ENV}" == "production" && "${VM_PROJECT}" != "shotnode-prod-k6767-2026" ]]; then
-  echo "Refusing production web deploy to project ${VM_PROJECT}." >&2
-  exit 1
+if [[ "${SHOTNODE_ENV}" == "production" ]]; then
+  if [[ "${VM_NAME}" != "shotnode-prod" || "${VM_PROJECT}" != "shotnode-prod-k6767-2026" || "${GCLOUD_ACCOUNT}" != "k.naveen6767@gmail.com" ]]; then
+    echo "Refusing production web deploy to project ${VM_PROJECT} VM ${VM_NAME} as ${GCLOUD_ACCOUNT}." >&2
+    echo "Production is k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / VM shotnode-prod." >&2
+    exit 1
+  fi
 fi
-if [[ "${SHOTNODE_ENV}" == "development" && "${VM_PROJECT}" == "shotnode-prod-k6767-2026" ]]; then
-  echo "Refusing development web deploy onto the production project." >&2
-  exit 1
+if [[ "${SHOTNODE_ENV}" == "development" ]]; then
+  if [[ "${VM_NAME}" == "shotnode-prod" ]]; then
+    echo "Refusing development web deploy onto VM shotnode-prod." >&2
+    exit 1
+  fi
+  if [[ "${VM_NAME}" != "shotnode-staging" || "${VM_PROJECT}" != "shotnode-prod-k6767-2026" || "${GCLOUD_ACCOUNT}" != "k.naveen6767@gmail.com" ]]; then
+    echo "Refusing development web deploy to project ${VM_PROJECT} VM ${VM_NAME} as ${GCLOUD_ACCOUNT}." >&2
+    echo "Development is k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / VM shotnode-staging." >&2
+    exit 1
+  fi
+fi
+if [[ "${SHOTNODE_DEPLOY_DRY_GUARD:-}" == "1" ]]; then
+  echo "DRY_GUARD_OK env=${SHOTNODE_ENV} vm=${VM_NAME} project=${VM_PROJECT} account=${GCLOUD_ACCOUNT}"
+  exit 0
 fi
 
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
