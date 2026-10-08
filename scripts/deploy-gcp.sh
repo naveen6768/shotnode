@@ -41,7 +41,7 @@ fi
 
 # Staging web: k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-staging (IAP SSH)
 # Production:  k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-prod (IAP SSH)
-# Android build lanes stay on tradingbeast9@gmail.com / shotnode-dev-tb / shotnode-dev.
+# Android build lanes are k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-build.
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
   VM_NAME="${SHOTNODE_VM_NAME:-shotnode-staging}"
   VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-prod-k6767-2026}}"
