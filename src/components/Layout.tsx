@@ -16,7 +16,7 @@ export default function Layout() {
       <main
         id="main-content"
         className={
-          pathname === "/" || pathname === "/about" ? "" : "document-page"
+          pathname === "/" || pathname === "/about" ? "" : pathname.startsWith("/blog") ? "blog-main" : "document-page"
         }
       >
         <Outlet />
@@ -43,6 +43,7 @@ export default function Layout() {
           <div>
             <h3>Company</h3>
             <Link to="/about">Our story</Link>
+            <Link to="/blog">Blog</Link>
             <a href="mailto:k.naveen6767@gmail.com">Contact us</a>
             <Link to="/#faq-section">FAQs</Link>
           </div>

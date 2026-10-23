@@ -12,6 +12,7 @@ export default function Header() {
     { label: "Product", to: "/#features-section" },
     { label: "How it works", to: "/#tools-section" },
     { label: "Get the app", to: "/#download-section" },
+    { label: "Blog", to: "/blog" },
     { label: "Our story", to: "/about" },
   ];
   return (

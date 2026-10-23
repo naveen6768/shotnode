@@ -5,11 +5,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import ShareLanding from "../components/ShareLanding";
+import { apiUrl } from "../lib/apiBase";
 
 import { PLAY_STORE_URL as PLAY_STORE } from "../components/DownloadLink";
-const API_BASE =
-  (import.meta as ImportMeta & { env?: { VITE_SHOTNODE_API_BASE?: string } })
-    .env?.VITE_SHOTNODE_API_BASE ?? "https://shotnode.pro";
 
 type TemplateCard = {
   template_id?: string;
@@ -51,10 +49,9 @@ export default function TemplateShareLanding() {
     let cancelled = false;
     (async () => {
       try {
-        const base = API_BASE.replace(/\/$/, "").replace(/\/api\/v1$/, "");
         // Same templates endpoint as remix; backend resolves community after remix.
         const res = await fetch(
-          `${base}/api/v1/templates/${encodeURIComponent(templateId)}`,
+          apiUrl(`/api/v1/templates/${encodeURIComponent(templateId)}`),
         );
         if (!res.ok) {
           throw new Error(

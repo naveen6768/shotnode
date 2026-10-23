@@ -1,0 +1,31 @@
+# systemd unit for the ShotNode blog SEO render service (Phase 8).
+# Installed by scripts/deploy-gcp.sh as shotnode-web-render[-dev].service with
+# the Environment= lines below rewritten for the target env. Do not enable the
+# template directly; the deploy script instantiates it per env.
+#
+# Staging:  RENDER_PORT=3021 BACKEND_ORIGIN=http://127.0.0.1:8091 SITE_ORIGIN=https://staging.shotnode.pro
+# Prod:     RENDER_PORT=3020 BACKEND_ORIGIN=http://127.0.0.1:8090 SITE_ORIGIN=https://shotnode.pro
+# DIST_DIR is always <DEPLOY_PATH>/dist on the VM.
+[Unit]
+Description=ShotNode blog SEO render service (%i)
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__VM_USER__
+WorkingDirectory=__DEPLOY_PATH__
+Environment=RENDER_PORT=__RENDER_PORT__
+Environment=BACKEND_ORIGIN=__BACKEND_ORIGIN__
+Environment=SITE_ORIGIN=__SITE_ORIGIN__
+Environment=DIST_DIR=__DEPLOY_PATH__/dist
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node __DEPLOY_PATH__/server/render/server.js
+# No ExecReload: the template is read at start, so reload-or-restart performs a
+# clean restart and picks up the freshly built dist/index.html.
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

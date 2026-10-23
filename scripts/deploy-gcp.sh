@@ -39,13 +39,13 @@ if [[ "${SHOTNODE_DEPLOY_DRY_GUARD:-}" == "1" ]]; then
   [[ -n "${DRY_IAP}" ]] && SHOTNODE_VM_USE_IAP="${DRY_IAP}"
 fi
 
-# Staging web: k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-staging (IAP SSH)
+# Staging web: appsecondbrain@gmail.com / shotnode-staging-asb / shotnode-staging (IAP SSH)
 # Production:  k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-prod (IAP SSH)
 # Android build lanes are k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-build.
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
   VM_NAME="${SHOTNODE_VM_NAME:-shotnode-staging}"
-  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-prod-k6767-2026}}"
-  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-k.naveen6767@gmail.com}}"
+  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-staging-asb}}"
+  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-appsecondbrain@gmail.com}}"
   SHOTNODE_VM_USE_IAP="${SHOTNODE_VM_USE_IAP:-true}"
 else
   VM_NAME="${SHOTNODE_VM_NAME:-shotnode-prod}"
@@ -69,9 +69,9 @@ if [[ "${SHOTNODE_ENV}" == "development" ]]; then
     echo "Refusing development web deploy onto VM shotnode-prod." >&2
     exit 1
   fi
-  if [[ "${VM_NAME}" != "shotnode-staging" || "${VM_PROJECT}" != "shotnode-prod-k6767-2026" || "${GCLOUD_ACCOUNT}" != "k.naveen6767@gmail.com" ]]; then
+  if [[ "${VM_NAME}" != "shotnode-staging" || "${VM_PROJECT}" != "shotnode-staging-asb" || "${GCLOUD_ACCOUNT}" != "appsecondbrain@gmail.com" ]]; then
     echo "Refusing development web deploy to project ${VM_PROJECT} VM ${VM_NAME} as ${GCLOUD_ACCOUNT}." >&2
-    echo "Development is k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / VM shotnode-staging." >&2
+    echo "Development is appsecondbrain@gmail.com / shotnode-staging-asb / VM shotnode-staging." >&2
     exit 1
   fi
 fi
@@ -87,6 +87,9 @@ if [[ "${SHOTNODE_ENV}" == "development" ]]; then
   NGINX_SITE="shotnode-dev"
   BUILD_MODE=development
   PUBLIC_PORT=8088
+  RENDER_PORT=3021
+  RENDER_BACKEND_ORIGIN="http://127.0.0.1:8091"
+  RENDER_UNIT="shotnode-web-render-dev"
 else
   DEPLOY_PATH="/var/www/shotnode"
   SITE_DOMAIN="${SHOTNODE_SITE_DOMAIN:-shotnode.pro}"
@@ -94,6 +97,9 @@ else
   NGINX_SITE="shotnode-pro"
   BUILD_MODE=production
   PUBLIC_PORT=80
+  RENDER_PORT=3020
+  RENDER_BACKEND_ORIGIN="http://127.0.0.1:8090"
+  RENDER_UNIT="shotnode-web-render"
 fi
 
 export PATH="/opt/homebrew/share/google-cloud-sdk/bin:${PATH}"
@@ -144,7 +150,7 @@ ssh_vm "sudo mkdir -p '${DEPLOY_PATH}' && sudo chown -R '${VM_USER}:www-data' '$
 scp_vm "${TMP_TAR}" "${VM_USER}@${VM_NAME}:/tmp/shotnode-web-src.tar.gz"
 scp_vm "${NGINX_CONF_SRC}" "${VM_USER}@${VM_NAME}:/tmp/nginx-shotnode.conf"
 
-ssh_vm "DEPLOY_PATH='${DEPLOY_PATH}' NGINX_SITE='${NGINX_SITE}' BUILD_MODE='${BUILD_MODE}' bash -s" <<'REMOTE'
+ssh_vm "DEPLOY_PATH='${DEPLOY_PATH}' NGINX_SITE='${NGINX_SITE}' BUILD_MODE='${BUILD_MODE}' RENDER_PORT='${RENDER_PORT}' RENDER_BACKEND_ORIGIN='${RENDER_BACKEND_ORIGIN}' SITE_DOMAIN='${SITE_DOMAIN}' RENDER_UNIT='${RENDER_UNIT}' bash -s" <<'REMOTE'
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 VM_USER="$(whoami)"
@@ -174,6 +180,34 @@ sudo chown -R "${VM_USER}:www-data" "${DEPLOY_PATH}"
 sudo find "${DEPLOY_PATH}" -type d -exec chmod 755 {} \;
 sudo find "${DEPLOY_PATH}/dist" -type f -exec chmod 644 {} \; 2>/dev/null || true
 sudo chmod 755 /var/www "${DEPLOY_PATH}"
+
+# Blog SEO render service (Phase 8): install/refresh the systemd unit, then
+# (re)start it and wait for /healthz before touching nginx.
+UNIT_SRC=""
+for candidate in "${DEPLOY_PATH}/scripts/shotnode-web-render.service" "/tmp/shotnode-web-render.service"; do
+  if [[ -f "${candidate}" ]]; then UNIT_SRC="${candidate}"; break; fi
+done
+if [[ -n "${UNIT_SRC}" ]]; then
+  sed -e "s|__VM_USER__|${VM_USER}|g" \
+      -e "s|__DEPLOY_PATH__|${DEPLOY_PATH}|g" \
+      -e "s|__RENDER_PORT__|${RENDER_PORT}|g" \
+      -e "s|__BACKEND_ORIGIN__|${RENDER_BACKEND_ORIGIN}|g" \
+      -e "s|__SITE_ORIGIN__|https://${SITE_DOMAIN}|g" \
+      "${UNIT_SRC}" | sudo tee "/etc/systemd/system/${RENDER_UNIT}.service" > /dev/null
+  sudo systemctl daemon-reload
+  sudo systemctl enable "${RENDER_UNIT}"
+  if sudo systemctl is-active --quiet "${RENDER_UNIT}"; then
+    sudo systemctl reload-or-restart "${RENDER_UNIT}"
+  else
+    sudo systemctl start "${RENDER_UNIT}"
+  fi
+  for _ in $(seq 1 30); do
+    if curl -sSf "http://127.0.0.1:${RENDER_PORT}/healthz" >/dev/null 2>&1; then break; fi
+    sleep 1
+  done
+  curl -sSf "http://127.0.0.1:${RENDER_PORT}/healthz" >/dev/null
+  echo "[remote] render ${RENDER_UNIT} healthy on :${RENDER_PORT}"
+fi
 
 sudo cp /tmp/nginx-shotnode.conf "/etc/nginx/sites-available/${NGINX_SITE}"
 sudo ln -sfn "/etc/nginx/sites-available/${NGINX_SITE}" "/etc/nginx/sites-enabled/${NGINX_SITE}"

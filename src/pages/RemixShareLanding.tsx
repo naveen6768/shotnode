@@ -4,11 +4,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import ShareLanding from "../components/ShareLanding";
+import { apiUrl } from "../lib/apiBase";
 
 import { PLAY_STORE_URL as PLAY_STORE } from "../components/DownloadLink";
-const API_BASE =
-  (import.meta as ImportMeta & { env?: { VITE_SHOTNODE_API_BASE?: string } })
-    .env?.VITE_SHOTNODE_API_BASE ?? "https://shotnode.pro";
 
 type PackageCard = {
   package_id: string;
@@ -36,9 +34,8 @@ export default function RemixShareLanding() {
     let cancelled = false;
     (async () => {
       try {
-        const base = API_BASE.replace(/\/$/, "").replace(/\/api\/v1$/, "");
         const res = await fetch(
-          `${base}/api/v1/templates/${encodeURIComponent(packageId)}`,
+          apiUrl(`/api/v1/templates/${encodeURIComponent(packageId)}`),
         );
         if (!res.ok) {
           throw new Error(

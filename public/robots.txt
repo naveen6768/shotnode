@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
-Sitemap: /sitemap.xml
+Disallow: /blog/preview/
+
+Sitemap: https://shotnode.pro/sitemap.xml
