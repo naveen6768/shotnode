@@ -8,7 +8,10 @@
  */
 import http from "node:http";
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
+import { findLaunchPost, launchPosts, launchSummaries } from "../../src/data/launchPosts.js";
 import { createCache } from "./cache.js";
 import { escapeHtml, splitTemplate, stripStaticSeo, TITLE_RE } from "./html.js";
 import {
@@ -159,12 +162,12 @@ function plainShell(parts, status, noindex) {
 async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, siteOrigin, fetchImpl }) {
   if (kind === "index") {
     const r = await fetchJson(backendOrigin, "/api/v1/blog/posts?limit=12", { fetchImpl });
-    if (r.status !== 200 || !r.data) return plainShell(parts, 200, false);
-    const items = r.data.items ?? [];
+    const data = mergeLaunchPosts(r.status === 200 ? r.data : null);
+    const items = data.items;
     const posts = items.map((p) => ({ title: p.title, url: `${siteOrigin}/blog/${p.slug}` }));
     const headExtra = headTags({
-      title: "Blog — ShotNode",
-      description: "Stories, guides, and news from the ShotNode team.",
+      title: "ShotNode Blog",
+      description: "Practical ideas for filming, editing, and sharing more memorable videos.",
       canonical: `${siteOrigin}/blog`,
       robots: null,
       og: { type: "website", url: `${siteOrigin}/blog` },
@@ -172,12 +175,12 @@ async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, 
     });
     const { html, headers } = buildPage({
       ...parts,
-      title: "Blog — ShotNode",
+      title: "ShotNode Blog",
       headExtra,
       rootHtml: `<div class="blog-page container">${indexMarkup(items, siteOrigin)}</div>`,
       islandPath: "/blog",
       islandKind: "index",
-      islandData: r.data,
+      islandData: data,
       extraHeaders: { "cache-control": "public, max-age=60, stale-while-revalidate=600" },
     });
     return { status: 200, headers, body: html };
@@ -186,24 +189,28 @@ async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, 
   if (kind === "category" || kind === "tag") {
     const q = kind === "category" ? `category=${encodeURIComponent(slug)}` : `tag=${encodeURIComponent(slug)}`;
     const r = await fetchJson(backendOrigin, `/api/v1/blog/posts?limit=12&${q}`, { fetchImpl });
-    if (r.status !== 200 || !r.data) return plainShell(parts, 200, false);
-    const label = `${kind === "category" ? "Category" : "Tag"}: ${slug}`;
+    const data = mergeLaunchPosts(r.status === 200 ? r.data : null, kind === "category" ? { category: slug } : { tag: slug });
+    const displayName = kind === "category"
+      ? data.items[0]?.category?.name
+      : data.items.flatMap((post) => post.tags ?? []).find((tag) => tag.slug === slug)?.name;
+    const title = displayName ?? slug.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const label = `${kind === "category" ? "Category" : "Tag"}: ${title}`;
     const headExtra = headTags({
       title: `${label} — ShotNode Blog`,
-      description: `Stories filed under ${slug} on the ShotNode blog.`,
+      description: `Stories filed under ${title} on the ShotNode blog.`,
       canonical: `${siteOrigin}${path}`,
       robots: null,
       og: { type: "website", url: `${siteOrigin}${path}` },
     });
-    const cards = (r.data.items ?? []).map((p) => cardMarkup(p, siteOrigin)).join("");
+    const cards = data.items.map((p) => cardMarkup(p, siteOrigin)).join("");
     const { html, headers } = buildPage({
       ...parts,
       title: `${label} — ShotNode Blog`,
       headExtra,
-      rootHtml: `<div class="blog-page container"><h1 class="blog-h1">${escapeHtml(slug)}</h1><div class="blog-grid">${cards}</div></div>`,
+      rootHtml: `<div class="blog-page container"><span class="blog-eyebrow">${kind === "category" ? "Category" : "Tag"}</span><h1 class="blog-h1">${escapeHtml(title)}</h1><div class="blog-grid">${cards}</div></div>`,
       islandPath: path,
       islandKind: kind,
-      islandData: r.data,
+      islandData: data,
       extraHeaders: { "cache-control": "public, max-age=60, stale-while-revalidate=600" },
     });
     return { status: 200, headers, body: html };
@@ -211,10 +218,14 @@ async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, 
 
   if (kind === "author") {
     const r = await fetchJson(backendOrigin, `/api/v1/blog/authors/${encodeURIComponent(slug)}`, { fetchImpl });
-    if (r.status === 404) return plainShell(parts, 404, true);
-    if (r.status !== 200 || !r.data) return plainShell(parts, 200, false);
-    const author = r.data.author;
-    const cards = (r.data.posts ?? []).map((p) => cardMarkup(p, siteOrigin)).join("");
+    const localAuthor = slug === "shotnode-editorial" ? launchPosts[0].author : null;
+    if (r.status === 404 && !localAuthor) return plainShell(parts, 404, true);
+    if (r.status !== 200 && !localAuthor) return plainShell(parts, 200, false);
+    const author = r.data?.author ?? localAuthor;
+    const cmsPosts = r.data?.posts ?? [];
+    const existing = new Set(cmsPosts.map((post) => post.slug));
+    const data = { author, posts: [...cmsPosts, ...launchSummaries({ author: slug }).filter((post) => !existing.has(post.slug))] };
+    const cards = data.posts.map((p) => cardMarkup(p, siteOrigin)).join("");
     const headExtra = headTags({
       title: `${author.displayName} — ShotNode Blog`,
       description: author.bio ?? `Stories by ${author.displayName}.`,
@@ -229,7 +240,7 @@ async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, 
       rootHtml: `<div class="blog-page container"><h1 class="blog-h1">${escapeHtml(author.displayName)}</h1><div class="blog-grid">${cards}</div></div>`,
       islandPath: path,
       islandKind: "author",
-      islandData: r.data,
+      islandData: data,
       extraHeaders: { "cache-control": "public, max-age=60, stale-while-revalidate=600" },
     });
     return { status: 200, headers, body: html };
@@ -239,9 +250,11 @@ async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, 
   const isPreview = kind === "preview";
   const apiPath = isPreview ? `/api/v1/blog/preview/${encodeURIComponent(token)}` : `/api/v1/blog/posts/${encodeURIComponent(slug)}`;
   const r = await fetchJson(backendOrigin, apiPath, { fetchImpl });
-  if (r.status === 404) return plainShell(parts, 404, true);
-  if (r.status !== 200 || !r.data?.post) throw new Error(`blog backend status ${r.status}`);
-  const post = r.data.post;
+  const localPost = isPreview ? null : findLaunchPost(slug);
+  if (r.status === 404 && !localPost) return plainShell(parts, 404, true);
+  if ((r.status !== 200 || !r.data?.post) && !localPost) throw new Error(`blog backend status ${r.status}`);
+  const post = r.data?.post ?? localPost;
+  const data = r.data?.post ? r.data : { post, related: launchPosts.filter((item) => item.slug !== slug) };
   // Canonical redirect: fetched slug differs (old slug 301s at the API).
   if (!isPreview && post.slug !== slug) {
     return {
@@ -281,10 +294,19 @@ async function renderBlogRoute({ kind, slug, token, path, parts, backendOrigin, 
     rootHtml: `<div class="blog-page container">${banner}${articleMarkup(post, siteOrigin)}</div>`,
     islandPath: path,
     islandKind: isPreview ? "preview" : "post",
-    islandData: r.data,
+    islandData: data,
     extraHeaders: isPreview ? { "cache-control": "no-store", "x-robots-tag": "noindex" } : { "cache-control": "public, max-age=60, stale-while-revalidate=600" },
   });
   return { status: 200, headers, body: html };
+}
+
+function mergeLaunchPosts(cmsData, filter = {}) {
+  const cmsItems = cmsData?.items ?? [];
+  const existing = new Set(cmsItems.map((post) => post.slug));
+  return {
+    items: [...cmsItems, ...launchSummaries(filter).filter((post) => !existing.has(post.slug))],
+    nextCursor: cmsData?.nextCursor ?? null,
+  };
 }
 
 async function routeFeed({ path, backendOrigin, siteOrigin, fetchImpl }) {
@@ -303,10 +325,30 @@ async function routeFeed({ path, backendOrigin, siteOrigin, fetchImpl }) {
   const backendPath = path === "/sitemap-blog.xml" ? "/api/v1/blog/sitemap.xml" : path === "/blog/rss.xml" ? "/api/v1/blog/feed.xml" : null;
   if (!backendPath) return { status: 404, headers: {}, body: "not found", cacheHit: false };
   const r = await fetchRaw(backendOrigin, backendPath, fetchImpl);
-  if (r.status !== 200) return { status: r.status === 404 ? 404 : 502, headers: {}, body: "upstream error", cacheHit: false };
-  const rebased = rebaseXml(r.body, siteOrigin);
+  const rebased = r.status === 200 ? rebaseXml(r.body, siteOrigin) : "";
+  const body = path === "/sitemap-blog.xml" ? sitemapWithLaunch(rebased, siteOrigin) : rssWithLaunch(rebased, siteOrigin);
   const ctype = path.endsWith("rss.xml") ? "application/rss+xml" : "application/xml";
-  return { status: 200, headers: { "content-type": ctype, "cache-control": "public, max-age=3600" }, body: rebased, cacheHit: false };
+  return { status: 200, headers: { "content-type": ctype, "cache-control": "public, max-age=3600" }, body, cacheHit: false };
+}
+
+function xmlEscape(value) {
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
+
+function sitemapWithLaunch(xml, siteOrigin) {
+  const entries = launchPosts.filter((post) => !xml.includes(`${siteOrigin}/blog/${post.slug}`)).map((post) =>
+    `<url><loc>${xmlEscape(`${siteOrigin}/blog/${post.slug}`)}</loc><lastmod>${post.updatedAt.slice(0, 10)}</lastmod></url>`,
+  ).join("\n");
+  if (xml.includes("</urlset>")) return xml.replace("</urlset>", `${entries}\n</urlset>`);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>`;
+}
+
+function rssWithLaunch(xml, siteOrigin) {
+  const entries = launchPosts.filter((post) => !xml.includes(`${siteOrigin}/blog/${post.slug}`)).map((post) =>
+    `<item><title>${xmlEscape(post.title)}</title><link>${xmlEscape(`${siteOrigin}/blog/${post.slug}`)}</link><guid>${xmlEscape(`${siteOrigin}/blog/${post.slug}`)}</guid><description>${xmlEscape(post.excerpt)}</description><pubDate>${new Date(post.firstPublishedAt).toUTCString()}</pubDate></item>`,
+  ).join("\n");
+  if (xml.includes("</channel>")) return xml.replace("</channel>", `${entries}\n</channel>`);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel><title>ShotNode Blog</title><link>${xmlEscape(`${siteOrigin}/blog`)}</link><description>Guides and stories from ShotNode.</description>${entries}</channel></rss>`;
 }
 
 async function fetchRaw(backendOrigin, path, fetchImpl = fetch) {
@@ -328,7 +370,7 @@ export function rebaseXml(xml, siteOrigin) {
   return xml.split("https://shotnode.pro").join(siteOrigin);
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].slice(process.argv[1].lastIndexOf("/")))) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const config = loadConfig();
   const { server } = startServer(config);
   const reload = () => {

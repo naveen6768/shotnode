@@ -43,7 +43,7 @@ export default function PrivacyPolicy() {
               Privacy Policy
             </h1>
             <p className="text-on-surface-variant text-sm sm:text-base">
-              Last Updated: September 18, 2026. Effective for the ShotNode
+              Last Updated: October 26, 2026. Effective for the ShotNode
               Android app and its supporting website.
             </p>
           </div>
@@ -140,8 +140,7 @@ export default function PrivacyPolicy() {
                 cuts) and camera panning.
               </li>
               <li>
-                To deliver direct notifications, waitlist status alerts, and
-                custom account information securely.
+                To deliver account and support communications securely.
               </li>
               <li>
                 To process secure billing subscriptions and analytical
@@ -209,7 +208,7 @@ export default function PrivacyPolicy() {
                 <strong className="text-white">
                   Google Cloud Run & Firestore:
                 </strong>{" "}
-                For running application instances and waitlist databases.
+                For hosting backend services and storing app data.
               </li>
               <li>
                 <strong className="text-white">Firebase Authentication:</strong>{" "}
@@ -248,8 +247,8 @@ export default function PrivacyPolicy() {
               </li>
             </ul>
             <p>
-              To delete your Firebase / Google-linked ShotNode account, use our
-              dedicated web form at{" "}
+              To delete your Firebase / Google-linked ShotNode account, prepare
+              an email request at{" "}
               <Link
                 to="/delete-account"
                 className="text-[#00D8FF] font-mono hover:underline"
@@ -258,10 +257,10 @@ export default function PrivacyPolicy() {
               </Link>
               , or send a clear deletion instruction to{" "}
               <a
-                href="mailto:k.naveen6767@gmail.com"
+                href="mailto:contact@shotnode.pro"
                 className="text-[#00D8FF] font-mono hover:underline"
               >
-                k.naveen6767@gmail.com
+                contact@shotnode.pro
               </a>
               .
             </p>
@@ -297,19 +296,11 @@ export default function PrivacyPolicy() {
               <p>
                 Authorized email:{" "}
                 <a
-                  href="mailto:k.naveen6767@gmail.com"
+                  href="mailto:contact@shotnode.pro"
                   className="text-[#00D8FF] font-mono hover:underline"
                 >
-                  k.naveen6767@gmail.com
+                  contact@shotnode.pro
                 </a>
-              </p>
-              <p>
-                Inquiries regarding standard software licensing can also be
-                directed to{" "}
-                <span className="font-mono text-white">
-                  support@shotnode.ai
-                </span>
-                .
               </p>
             </div>
           </section>

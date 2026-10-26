@@ -16,7 +16,7 @@ import {
   Mail,
 } from "lucide-react";
 
-const SUPPORT_EMAIL = "k.naveen6767@gmail.com";
+const SUPPORT_EMAIL = "contact@shotnode.pro";
 const CONFIRM_PHRASE = "DELETE";
 
 type FormState = "idle" | "submitting" | "submitted";
@@ -101,8 +101,7 @@ export default function DeleteAccount() {
             </h1>
             <p className="text-on-surface-variant text-sm sm:text-base max-w-2xl">
               Request permanent deletion of your ShotNode account created with Firebase Authentication
-              (Google sign-in). This page satisfies Google Play Console account-deletion disclosure
-              requirements for the ShotNode Android app.
+              (Google sign-in). You can prepare an email below or write to us directly.
             </p>
           </div>
         </div>
@@ -130,8 +129,8 @@ export default function DeleteAccount() {
             </h2>
             <ol className="list-decimal pl-5 space-y-2">
               <li>
-                Submit the form below using the same email address you used to sign in to ShotNode
-                with Google / Firebase Authentication.
+                Use the form below to prepare an email, then send it from your email app.
+                Include the same email address you used to sign in to ShotNode.
               </li>
               <li>
                 Or email us directly at{" "}
@@ -173,12 +172,12 @@ export default function DeleteAccount() {
                 {
                   icon: Database,
                   title: "Account & profile records",
-                  body: "App account identity, waitlist / support tickets tied to that email, and cloud profile metadata we store for your account.",
+                  body: "App account identity, support requests tied to that email, and cloud profile metadata we store for your account.",
                 },
                 {
                   icon: Mail,
-                  title: "Marketing & waitlist entries",
-                  body: "Waitlist enrollments and promotional contact records linked to the deleted account email (unless legally required to retain).",
+                  title: "Communications records",
+                  body: "Promotional contact records linked to the deleted account email (unless legally required to retain).",
                 },
                 {
                   icon: Clock,
@@ -263,9 +262,9 @@ export default function DeleteAccount() {
 
         <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:p-8 space-y-6">
           <div className="space-y-2">
-            <h2 className="text-xl font-bold text-white tracking-tight">Submit deletion request</h2>
+            <h2 className="text-xl font-bold text-white tracking-tight">Prepare deletion email</h2>
             <p className="text-sm text-on-surface-variant">
-              Use the email tied to your Firebase / Google login in the ShotNode Android app.
+              Use the email tied to your ShotNode login. The request is received only after you send the drafted email.
             </p>
           </div>
 
@@ -275,7 +274,7 @@ export default function DeleteAccount() {
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-bold text-white">Request drafted</h3>
+                <h3 className="text-xl font-bold text-white">Email drafted</h3>
                 <p className="text-sm text-on-surface-variant max-w-md mx-auto">
                   Your email client should open with a pre-filled deletion request to{" "}
                   <span className="text-white font-mono text-xs">{SUPPORT_EMAIL}</span>. Send that
@@ -292,7 +291,7 @@ export default function DeleteAccount() {
                 }}
                 className="text-xs font-mono text-[#00D8FF] hover:underline"
               >
-                Submit another request
+                Prepare another email
               </button>
             </div>
           ) : (
@@ -386,7 +385,7 @@ export default function DeleteAccount() {
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    Request account deletion
+                    Open email to request deletion
                   </>
                 )}
               </button>

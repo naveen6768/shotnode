@@ -32,16 +32,21 @@ npm start         # serve dist/ with the production Node server
 
 ## Deploy
 
-This is a static Vite + React app. Choose any platform below.
+The public `shotnode.pro` site runs on the newer production VM. Use the
+website-only deploy script below so the backend on that VM is left intact.
 
 ### GCP (two accounts)
 
 | Env | Command | Account | Project | VM | IP | Path |
 | --- | --- | --- | --- | --- | --- | --- |
-| Production | `SHOTNODE_ENV=production bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-prod-k6767-2026` | `shotnode-prod` | `34.93.135.34` | `/var/www/shotnode` |
-| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `appsecondbrain@gmail.com` | `shotnode-staging-asb` | `shotnode-staging` | `34.14.147.162` | `/var/www/shotnode-dev` |
+| Live production | `bash scripts/deploy-live-web.sh` | `shotnodeapp@gmail.com` | `shotnode-prod-app-2026` | `shotnode-production` | `34.93.6.78` | `/var/www/shotnode-dev` |
+| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `appsecondbrain@gmail.com` | `shotnode-staging-asb` | `shotnode-staging` | `35.244.11.255` | `/var/www/shotnode-dev` |
+| Preserved legacy VM | `SHOTNODE_ENV=production bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-prod-k6767-2026` | `shotnode-prod` | `34.93.135.34` | `/var/www/shotnode` |
 
-Staging and production SSH use IAP. The deploy script adds `--tunnel-through-iap`. Live sites: https://shotnode.pro/ and https://staging.shotnode.pro/. Account setup is in the Android repo guide [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md).
+All VM access uses IAP. The live deploy builds locally, uploads only website
+files, backs up the prior site, and verifies the blog and existing API before
+completing. Live sites: https://shotnode.pro/ and https://staging.shotnode.pro/.
+Account setup is in the Android repo guide [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md).
 
 ### Blog SEO render service (Phase 8)
 
@@ -55,7 +60,7 @@ meta/canonical/OG/JSON-LD and the article HTML into the built SPA shell, plus a
 | Production | `shotnode-web-render` | `3020` | `http://127.0.0.1:8090` |
 | Staging | `shotnode-web-render-dev` | `3021` | `http://127.0.0.1:8091` |
 
-The deploy script installs/refreshes the systemd unit from
+The deploy scripts install/refresh the systemd unit from
 `scripts/shotnode-web-render.service`, restarts it after every build, waits for
 `/healthz`, then reloads nginx. If the render service is down, nginx falls back
 to the SPA shell for `/blog*` (`error_page 502 503 504 /index.html`).

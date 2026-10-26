@@ -3,9 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import Header from "./Header";
 import Brand from "./Brand";
 import ScrollToTop from "./ScrollToTop";
+import { useBlogAvailability } from "../lib/useBlogAvailability";
 
 export default function Layout() {
   const { pathname } = useLocation();
+  const blogAvailable = useBlogAvailability();
   return (
     <div className="site-shell">
       <a className="skip-link" href="#main-content">
@@ -30,8 +32,8 @@ export default function Layout() {
               <br />
               Right on your phone.
             </p>
-            <a href="mailto:k.naveen6767@gmail.com">
-              Let’s talk <ArrowUpRight size={14} />
+            <a href="mailto:contact@shotnode.pro">
+              contact@shotnode.pro <ArrowUpRight size={14} />
             </a>
           </div>
           <div>
@@ -43,8 +45,8 @@ export default function Layout() {
           <div>
             <h3>Company</h3>
             <Link to="/about">Our story</Link>
-            <Link to="/blog">Blog</Link>
-            <a href="mailto:k.naveen6767@gmail.com">Contact us</a>
+            {blogAvailable && <Link to="/blog">Blog</Link>}
+            <a href="mailto:contact@shotnode.pro">Contact us</a>
             <Link to="/#faq-section">FAQs</Link>
           </div>
           <div>

@@ -1,5 +1,6 @@
 import { ArrowUpRight, Compass, Heart, Sparkles } from "lucide-react";
 import DownloadLink from "./DownloadLink";
+import Affiliations from "./Affiliations";
 export default function AboutUs() {
   return (
     <div className="about-page container">
@@ -71,6 +72,7 @@ export default function AboutUs() {
           </article>
         ))}
       </div>
+      <Affiliations about />
       <div className="about-contact">
         <div>
           <span className="eyebrow">FIND US</span>
@@ -80,8 +82,8 @@ export default function AboutUs() {
             <br />
             Noida, Uttar Pradesh – 201301, India
           </p>
-          <a className="text-link" href="mailto:k.naveen6767@gmail.com">
-            Get in touch <ArrowUpRight size={16} />
+          <a className="text-link" href="mailto:contact@shotnode.pro">
+            contact@shotnode.pro <ArrowUpRight size={16} />
           </a>
         </div>
         <DownloadLink icon />

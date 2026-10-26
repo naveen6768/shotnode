@@ -357,6 +357,104 @@ em {
 .platform-strip svg {
   width: 21px;
 }
+.affiliations {
+  padding-block: 54px 48px;
+  border-bottom: 1px solid var(--line);
+}
+.affiliations-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px 34px;
+  margin-bottom: 25px;
+}
+.affiliations-intro .eyebrow {
+  width: 100%;
+  color: #70796b;
+}
+.affiliations-intro h2 {
+  font-size: clamp(28px, 3vw, 40px);
+  letter-spacing: -1.5px;
+}
+.affiliations-intro p {
+  max-width: 470px;
+  color: #667058;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.affiliations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: 14px;
+}
+.affiliation-card {
+  position: relative;
+  min-height: 158px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 22px 24px;
+  border: 1px solid #dedfd5;
+  border-radius: 9px;
+  background: #fffefa;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.affiliation-card:hover {
+  border-color: #bdc8ac;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px #2b33200c;
+}
+.affiliation-card > svg {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #8e9885;
+}
+.affiliation-logo-wrap {
+  display: flex;
+  align-items: center;
+  height: 62px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+.affiliation-logo-wrap img {
+  display: block;
+  max-width: 100%;
+}
+.affiliation-logo-startup {
+  width: 180px;
+  height: 58px;
+  object-fit: cover;
+  object-position: center;
+}
+.affiliation-logo-claude {
+  width: 51px;
+  height: 51px;
+  border-radius: 10px;
+}
+.affiliation-logo-google {
+  width: 185px;
+  height: auto;
+}
+.affiliation-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.affiliation-card-copy strong {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.affiliation-card-copy span {
+  color: #697462;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.affiliations-about {
+  width: 100%;
+  padding-block: 50px;
+}
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -1168,6 +1266,16 @@ h3 {
     align-items: stretch;
     gap: 20px;
     padding-block: 32px;
+  }
+  .affiliations {
+    padding-block: 42px;
+  }
+  .affiliations-intro {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .affiliations-intro p {
+    max-width: none;
   }
   .platform-strip > p {
     text-align: center;

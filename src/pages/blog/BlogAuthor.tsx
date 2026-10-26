@@ -4,12 +4,17 @@ import { absoluteUrl, getAuthor, getInitialBlogData, type BlogAuthorResponse } f
 import { PostCard } from "../../components/blog/PostCard";
 import { useBlogMeta } from "../../components/blog/Related";
 import NotFoundPage from "../NotFoundPage";
+import { launchPosts, launchSummaries } from "../../data/launchPosts.js";
 
 /** Public author profile: bio, links, recent posts. */
 export default function BlogAuthor() {
   const { slug = "" } = useParams();
   const { pathname } = useLocation();
-  const [data, setData] = useState<BlogAuthorResponse | null>(() => getInitialBlogData<BlogAuthorResponse>(pathname));
+  const [data, setData] = useState<BlogAuthorResponse | null>(() => getInitialBlogData<BlogAuthorResponse>(pathname) ??
+    (slug === "shotnode-editorial" ? {
+      author: launchPosts[0].author as BlogAuthorResponse["author"],
+      posts: launchSummaries({ author: slug }) as BlogAuthorResponse["posts"],
+    } : null));
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useBlogMeta(data ? data.author.displayName : "Author", data?.author.bio);
@@ -17,7 +22,8 @@ export default function BlogAuthor() {
   useEffect(() => {
     let cancelled = false;
     const ctrl = new AbortController();
-    if (data) return;
+    if (data?.author.slug === slug && data.posts.some((post) => !post.id.startsWith("launch-"))) return;
+    setData((current) => current?.author.slug === slug ? current : null);
     (async () => {
       setNotFound(false);
       setError(null);
@@ -47,7 +53,7 @@ export default function BlogAuthor() {
       </div>
     );
   }
-  if (!data) {
+  if (!data || data.author.slug !== slug) {
     return (
       <div className="blog-page container">
         <p className="blog-status" role="status">

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title">
+  <title id="title">From moments to a story</title>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#F2A67B"/><stop offset="1" stop-color="#E86442"/></linearGradient><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#F7DDBA"/><stop offset="1" stop-color="#E8AD81"/></linearGradient></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <circle cx="1020" cy="100" r="280" fill="#F7C29A" opacity=".28"/><circle cx="110" cy="595" r="245" fill="#C93B2D" opacity=".18"/>
+  <text x="78" y="105" fill="#482F2A" font-family="Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="5">SHOTNODE / FIELD NOTES</text>
+  <text x="78" y="215" fill="#FFF8EC" font-family="Georgia,serif" font-size="71">From moments</text><text x="78" y="290" fill="#FFF8EC" font-family="Georgia,serif" font-style="italic" font-size="71">to a story.</text>
+  <g transform="translate(75 362)">
+    <g transform="rotate(-7 150 128)"><rect width="296" height="218" rx="13" fill="#FFF7E9"/><rect x="13" y="13" width="270" height="170" rx="5" fill="url(#sky)"/><circle cx="215" cy="64" r="31" fill="#FFD18B"/><path d="M13 172 Q90 63 166 150 T283 144 V183 H13" fill="#A0A777"/><rect x="133" y="191" width="30" height="8" rx="4" fill="#E7825B"/></g>
+    <g transform="translate(283 -27) rotate(3 150 128)"><rect width="296" height="218" rx="13" fill="#FFF7E9"/><rect x="13" y="13" width="270" height="170" rx="5" fill="#708F79"/><path d="M13 156 Q109 105 170 150 T283 118 V183 H13" fill="#344E45"/><path d="M150 184 V65 M116 127 Q150 77 180 126" fill="none" stroke="#E7D6A4" stroke-width="17" stroke-linecap="round"/><rect x="133" y="191" width="30" height="8" rx="4" fill="#E7825B"/></g>
+    <g transform="translate(574 -8) rotate(8 150 128)"><rect width="296" height="218" rx="13" fill="#FFF7E9"/><rect x="13" y="13" width="270" height="170" rx="5" fill="#394B51"/><circle cx="162" cy="89" r="59" fill="#F1B37E"/><path d="M13 156 Q72 109 146 160 T283 133 V183 H13" fill="#25363A"/><rect x="133" y="191" width="30" height="8" rx="4" fill="#E7825B"/></g>
+  </g>
+  <path d="M996 405 q50 22 72 61" fill="none" stroke="#FFF8EC" stroke-width="5" stroke-linecap="round"/><path d="m1058 450 11 19-22 3" fill="none" stroke="#FFF8EC" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

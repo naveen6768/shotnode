@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title">
+  <title id="title">The first three seconds</title>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#BAC8A1"/><stop offset="1" stop-color="#657A62"/></linearGradient><linearGradient id="screen" x2="0" y2="1"><stop stop-color="#D5E6C4"/><stop offset="1" stop-color="#89A27C"/></linearGradient></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/><circle cx="1195" cy="85" r="295" fill="#E9E2BD" opacity=".25"/>
+  <text x="78" y="102" fill="#354B40" font-family="Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="5">SHOTNODE / FIELD NOTES</text>
+  <text x="78" y="220" fill="#FBF8EC" font-family="Georgia,serif" font-size="78">The first</text><text x="78" y="307" fill="#FBF8EC" font-family="Georgia,serif" font-style="italic" font-size="78">three seconds.</text>
+  <text x="80" y="386" fill="#32483D" font-family="Arial,sans-serif" font-size="24" letter-spacing="1">Make a promise. Then keep it.</text>
+  <g transform="translate(695 64) rotate(9 195 291)"><rect width="390" height="582" rx="60" fill="#2D4039"/><rect x="16" y="16" width="358" height="550" rx="48" fill="#F5F4EA"/><rect x="29" y="29" width="332" height="524" rx="37" fill="url(#screen)"/><path d="M29 407 Q151 274 247 360 T361 269 V553 H29" fill="#36594B"/><circle cx="271" cy="157" r="66" fill="#F6D08F"/><circle cx="195" cy="531" r="9" fill="#F6F3E8"/><rect x="145" y="39" width="100" height="17" rx="9" fill="#2D4039"/></g>
+  <g fill="#FFF8EA" font-family="Georgia,serif" font-size="57"><text x="84" y="550">01</text><text x="255" y="550">02</text><text x="427" y="550">03</text></g><path d="M162 526 H224 M335 526 H395" stroke="#FFF8EA" stroke-width="3"/><path d="M76 586 H544" stroke="#E7E6D4" stroke-opacity=".6" stroke-width="2"/>
+</svg>

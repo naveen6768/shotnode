@@ -40,7 +40,7 @@ export default function FAQAccordion() {
           more <em>clarity.</em>
         </h2>
         <p>Something else on your mind?</p>
-        <a className="text-link" href="mailto:k.naveen6767@gmail.com">
+        <a className="text-link" href="mailto:contact@shotnode.pro">
           Talk to the team <ArrowUpRight size={16} />
         </a>
       </div>
