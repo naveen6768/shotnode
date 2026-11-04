@@ -11,6 +11,7 @@ import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsOfService from "./components/TermsOfService";
 import DeleteAccount from "./components/DeleteAccount";
 import RemixShareLanding from "./pages/RemixShareLanding";
+import ListingShareLanding from "./pages/ListingShareLanding";
 import TemplateShareLanding from "./pages/TemplateShareLanding";
 import BlogIndex from "./pages/blog/BlogIndex";
 import BlogPost from "./pages/blog/BlogPost";
@@ -22,6 +23,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/r/:packageId" element={<RemixShareLanding />} />
+      <Route path="/l/:publicId" element={<ListingShareLanding />} />
       <Route path="/t/:templateId" element={<TemplateShareLanding />} />
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
