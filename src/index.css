@@ -1830,6 +1830,187 @@ h3 {
   display: block;
   margin-top: 25px;
 }
+.listing-share-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 32px 24px 24px;
+  background: #f4f3ed;
+}
+.listing-share-card {
+  width: min(820px, 100%);
+  margin: auto;
+  padding: clamp(22px, 5vw, 48px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  box-shadow: 0 20px 65px #2b332009;
+}
+.listing-share-heading {
+  text-align: center;
+}
+.listing-share-heading .eyebrow {
+  justify-content: center;
+  color: #737b65;
+}
+.listing-share-heading h1 {
+  margin: 16px 0 0;
+  font-size: clamp(30px, 6vw, 48px);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -1.6px;
+  overflow-wrap: anywhere;
+}
+.listing-share-byline {
+  margin: 12px 0 25px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.listing-share-byline strong {
+  color: var(--ink);
+}
+.listing-share-player-wrap {
+  width: min(100%, 680px, calc(70dvh * var(--listing-preview-ratio, 1.7778)));
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid #1e211b20;
+  border-radius: 12px;
+  background: #171815;
+}
+.listing-share-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.listing-share-poster-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.listing-share-poster-placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: white;
+  background: #24251f;
+}
+.listing-share-poster {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: white;
+  background: #24251f;
+}
+.listing-share-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.listing-share-poster-placeholder {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: white;
+  background: #ed5934;
+}
+.listing-share-poster p {
+  position: absolute;
+  z-index: 1;
+  bottom: 9px;
+  left: 12px;
+  right: 12px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  color: white;
+  background: #171815d9;
+  text-align: center;
+  font-size: 12px;
+}
+.listing-share-retry {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 12px;
+  color: white;
+  background: #171815d9;
+  font-size: 12px;
+}
+.listing-share-description {
+  margin: 22px 0 0;
+  color: #69715f;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.listing-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+.listing-share-note,
+.listing-share-footer {
+  display: block;
+  color: #818a73;
+  text-align: center;
+  font-size: 11px;
+}
+.listing-share-note {
+  margin-top: 18px;
+}
+.listing-share-error {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  color: #8e3a27;
+  background: #faede6;
+}
+.listing-share-error p {
+  margin: 0;
+  font-size: 13px;
+}
+.listing-share-error button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d9a99b;
+  border-radius: 5px;
+  padding: 7px 10px;
+  color: inherit;
+  background: transparent;
+}
+.spin {
+  animation: listing-share-spin 1s linear infinite;
+}
+@keyframes listing-share-spin {
+  to { transform: rotate(360deg); }
+}
 .document-page .text-rose-300,
 .document-page .text-rose-200 {
   color: #b04545;
@@ -1866,6 +2047,27 @@ h3 {
   }
   .share-card h1 {
     font-size: 34px;
+  }
+  .listing-share-page {
+    padding: 24px 12px 18px;
+    gap: 18px;
+  }
+  .listing-share-card {
+    padding: 24px 15px;
+    border-radius: 10px;
+  }
+  .listing-share-player-wrap {
+    width: min(100%, calc(58dvh * var(--listing-preview-ratio, 1.7778)));
+    max-height: 58dvh;
+  }
+  .listing-share-player {
+    object-fit: contain;
+  }
+  .listing-share-actions {
+    flex-direction: column;
+  }
+  .listing-share-actions .button {
+    width: 100%;
   }
   .menu-toggle {
     min-width: 42px;

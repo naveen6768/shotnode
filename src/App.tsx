@@ -11,10 +11,9 @@ import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsOfService from "./components/TermsOfService";
 import DeleteAccount from "./components/DeleteAccount";
 import RemixShareLanding from "./pages/RemixShareLanding";
-import ListingShareLanding from "./pages/ListingShareLanding";
 import TemplateShareLanding from "./pages/TemplateShareLanding";
 import CreatorProfileLanding from "./pages/CreatorProfileLanding";
-import CreatorProjectLanding from "./pages/CreatorProjectLanding";
+import ProjectListingShareLanding from "./pages/ProjectListingShareLanding";
 import BlogIndex from "./pages/blog/BlogIndex";
 import BlogPost from "./pages/blog/BlogPost";
 import BlogTaxonomy from "./pages/blog/BlogTaxonomy";
@@ -25,10 +24,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/r/:packageId" element={<RemixShareLanding />} />
-      <Route path="/l/:publicId" element={<ListingShareLanding />} />
       <Route path="/t/:templateId" element={<TemplateShareLanding />} />
       <Route path="/c/:slug" element={<CreatorProfileLanding />} />
-      <Route path="/l/:publicId" element={<CreatorProjectLanding />} />
+      <Route path="/l/:publicId" element={<ProjectListingShareLanding />} />
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutUs />} />
