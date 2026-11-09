@@ -1,10 +1,10 @@
 /**
- * Blog SEO render service: injects meta/canonical/OG/JSON-LD + article HTML
- * into the built SPA shell for crawler-complete blog pages.
+ * SEO render service: injects crawler-complete blog and public project listing
+ * metadata/HTML into the built SPA shell.
  *
  * Routes: /blog, /blog/category/:slug, /blog/tag/:slug, /blog/author/:slug,
- *   /blog/:slug, /blog/preview/:token, /blog/rss.xml, /sitemap.xml (+ index
- *   parts), /healthz.
+ *   /blog/:slug, /blog/preview/:token, /l/:publicId, /l/:publicId/{poster,preview},
+ *   /blog/rss.xml, /sitemap.xml (+ index parts), /healthz.
  */
 import http from "node:http";
 import fs from "node:fs";
@@ -33,16 +33,19 @@ function cspFor(islandHash) {
   return [
     "default-src 'self'",
     "img-src 'self' data: https:",
+    "media-src 'self' https:",
+    "connect-src 'self' https:",
     "frame-src https://www.youtube-nocookie.com",
     `script-src 'self' 'sha256-${islandHash}'`,
     "style-src 'self' https://fonts.googleapis.com",
+    "style-src-attr 'unsafe-inline'",
     "font-src 'self' https://fonts.gstatic.com",
   ].join("; ");
 }
 
 export function buildPage({ shell, parts, baseHead, title, headExtra, rootHtml, islandPath, islandKind, islandData, extraHeaders = {} }) {
   const headEnd = shell.indexOf("</head>");
-  const head = baseHead.replace(TITLE_RE, `<title>${title}</title>`) + "\n" + headExtra;
+  const head = baseHead.replace(TITLE_RE, `<title>${escapeHtml(title)}</title>`) + "\n" + headExtra;
   const { script, hash } = islandScript(islandPath, islandKind, islandData);
   const html =
     head +
@@ -70,7 +73,15 @@ export function startServer({ port, backendOrigin, siteOrigin, distDir, shellOve
     let backendMs = null;
 
     try {
-      const out = await route({ path, parts: { shell, parts, baseHead }, backendOrigin, siteOrigin, fetchImpl, cache });
+      const out = await route({
+        path,
+        parts: { shell, parts, baseHead },
+        backendOrigin,
+        siteOrigin,
+        fetchImpl,
+        cache,
+        projectPreviewPlaybackEnabled: process.env.SHOTNODE_PROJECT_PREVIEW_PLAYBACK_ENABLED !== "false",
+      });
       status = out.status;
       headers = out.headers;
       body = out.body;
@@ -92,9 +103,54 @@ export function startServer({ port, backendOrigin, siteOrigin, distDir, shellOve
   return { server, cache };
 }
 
-export async function route({ path, parts, backendOrigin, siteOrigin, fetchImpl, cache }) {
+export async function route({ path, parts, backendOrigin, siteOrigin, fetchImpl, cache, projectPreviewPlaybackEnabled = true }) {
+  if (path === "/__project-preview-config") {
+    return {
+      status: 200,
+      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+      body: JSON.stringify({ enabled: Boolean(projectPreviewPlaybackEnabled) }),
+      cacheHit: false,
+    };
+  }
   if (path === "/healthz") {
     return { status: 200, headers: { "content-type": "text/plain" }, body: "ok", cacheHit: false };
+  }
+  const listingMediaMatch = path.match(/^\/l\/([^/]+)\/(poster|preview)$/);
+  if (listingMediaMatch) {
+    return routeListingMedia({
+      publicId: decode(listingMediaMatch[1]),
+      mediaKind: listingMediaMatch[2],
+      backendOrigin,
+      siteOrigin,
+      fetchImpl,
+      projectPreviewPlaybackEnabled,
+    });
+  }
+  const listingMatch = path.match(/^\/l\/([^/]+)$/);
+  if (listingMatch) {
+    const publicId = decode(listingMatch[1]);
+    const t0 = Date.now();
+    try {
+      const out = await renderListingRoute({
+        publicId,
+        path,
+        parts,
+        backendOrigin,
+        siteOrigin,
+        fetchImpl,
+        projectPreviewPlaybackEnabled,
+      });
+      out.backendMs = Date.now() - t0;
+      return { ...out, cacheHit: false };
+    } catch {
+      return {
+        status: 503,
+        headers: { "retry-after": "30", "cache-control": "no-store" },
+        body: "project listing temporarily unavailable",
+        cacheHit: false,
+        backendMs: Date.now() - t0,
+      };
+    }
   }
   if (path === "/sitemap.xml" || path === "/sitemap-pages.xml" || path === "/sitemap-blog.xml" || path === "/blog/rss.xml") {
     return routeFeed({ path, backendOrigin, siteOrigin, fetchImpl });
@@ -141,6 +197,116 @@ export async function route({ path, parts, backendOrigin, siteOrigin, fetchImpl,
       return s;
     }
   }
+}
+
+async function fetchPublicProjectListing(publicId, backendOrigin, fetchImpl) {
+  const response = await fetchJson(
+    backendOrigin,
+    `/api/v1/marketplace/listings/${encodeURIComponent(publicId)}`,
+    { fetchImpl },
+  );
+  if (response.status !== 200 || !response.data) return response;
+  const listing = response.data;
+  if (
+    listing.listingKind !== "PROJECT" ||
+    !["PUBLIC", "UNLISTED"].includes(listing.visibility)
+  ) {
+    return { status: 404, data: null };
+  }
+  return { status: 200, data: listing };
+}
+
+function resolveMediaUrl(value, siteOrigin) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const resolved = new URL(value, siteOrigin);
+    return ["https:", "http:"].includes(resolved.protocol) ? resolved.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function durationLabel(durationMs) {
+  const ms = Number(durationMs);
+  if (!Number.isFinite(ms) || ms <= 0) return "";
+  const seconds = Math.round(ms / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+async function routeListingMedia({ publicId, mediaKind, backendOrigin, siteOrigin, fetchImpl, projectPreviewPlaybackEnabled }) {
+  if (mediaKind === "preview" && !projectPreviewPlaybackEnabled) {
+    return { status: 404, headers: { "cache-control": "no-store" }, body: "project preview unavailable" };
+  }
+  const response = await fetchPublicProjectListing(publicId, backendOrigin, fetchImpl);
+  if (response.status !== 200 || !response.data) {
+    const status = response.status === 404 ? 404 : 503;
+    return {
+      status,
+      headers: { "cache-control": "no-store", ...(status === 503 ? { "retry-after": "30" } : {}) },
+      body: `project ${mediaKind} unavailable`,
+    };
+  }
+  const mediaUrl = resolveMediaUrl(
+    mediaKind === "poster" ? response.data.posterUrl : response.data.previewUrl,
+    siteOrigin,
+  );
+  if (!mediaUrl) {
+    return { status: 404, headers: { "cache-control": "no-store" }, body: `project ${mediaKind} unavailable` };
+  }
+  return {
+    status: 302,
+    headers: { location: mediaUrl, "cache-control": "no-store", "referrer-policy": "no-referrer" },
+    body: "",
+  };
+}
+
+async function renderListingRoute({ publicId, path, parts, backendOrigin, siteOrigin, fetchImpl, projectPreviewPlaybackEnabled }) {
+  const response = await fetchPublicProjectListing(publicId, backendOrigin, fetchImpl);
+  if (response.status !== 200 || !response.data) {
+    if (response.status === 404) return plainShell(parts, 404, true);
+    return { status: 503, headers: { "retry-after": "30", "cache-control": "no-store" }, body: "project listing temporarily unavailable" };
+  }
+  const listing = response.data;
+  const title = `${listing.title || "Project preview"} · ShotNode`;
+  const description = String(listing.shortDescription || listing.description ||
+    "Watch this short project preview, then open the editable ShotNode project to make it your own.").slice(0, 160);
+  const canonical = `${siteOrigin}/l/${encodeURIComponent(publicId)}`;
+  const posterProxy = listing.posterUrl ? `${canonical}/poster` : null;
+  const duration = durationLabel(listing.artifactSummary?.durationMs);
+  const previewProxy = projectPreviewPlaybackEnabled && listing.previewUrl ? `${canonical}/preview` : null;
+  const creator = listing.creator?.displayName || "ShotNode creator";
+  const ratio = String(listing.artifactSummary?.aspectRatio || "16:9");
+  const safeRatio = /^(?:\d+(?:\.\d+)?\s*[:/x]\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?)$/i.test(ratio) ? ratio : "16:9";
+  const aspect = safeRatio.includes(":") || safeRatio.includes("/") || safeRatio.toLowerCase().includes("x")
+    ? safeRatio.replace(/x/i, " / ").replace(/[:/]/g, " / ")
+    : safeRatio;
+  const media = previewProxy
+    ? `<video class="listing-share-player" controls playsinline muted preload="none" poster="${escapeHtml(posterProxy || "")}" aria-label="Preview of ${escapeHtml(listing.title)}"><source src="${escapeHtml(previewProxy)}" type="video/mp4" />Your browser cannot play this project preview.</video>`
+    : posterProxy
+      ? `<img class="listing-share-poster-image" src="${escapeHtml(posterProxy)}" alt="Poster for ${escapeHtml(listing.title)}" />`
+      : `<div class="listing-share-poster-placeholder" role="img" aria-label="No preview image available">Project preview</div>`;
+  const previewMessage = previewProxy ? "" : `<p role="status">A video preview is not available for this project yet.</p>`;
+  const playStore = "https://play.google.com/store/apps/details?id=com.shotnode.app";
+  const intent = `intent://l/${encodeURIComponent(publicId)}#Intent;scheme=shotnode;package=com.shotnode.app;S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
+  const rootHtml = `<main class="listing-share-page"><section class="listing-share-card"><div class="listing-share-heading"><span class="eyebrow"><span></span> A PROJECT TO PREVIEW</span><h1>${escapeHtml(listing.title || "Project preview")}</h1><p class="listing-share-byline">Made by <strong>${escapeHtml(creator)}</strong>${duration ? ` · ${escapeHtml(duration)}` : ""}</p></div><div class="listing-share-player-wrap" style="aspect-ratio:${escapeHtml(aspect)}">${media}${previewMessage}</div><p class="listing-share-description">Watch this short project preview, then open the editable ShotNode project to make it your own.</p><div class="listing-share-actions"><a class="button button-orange" href="${escapeHtml(intent)}">Open in ShotNode</a><a class="button button-outline" href="${playStore}">Get ShotNode</a></div><span class="listing-share-note">Preview the edit first. Remix it when you’re ready.</span></section></main>`;
+  const headExtra = `<meta name="project-preview-playback" content="${projectPreviewPlaybackEnabled ? "true" : "false"}" />\n` + headTags({
+    title,
+    description,
+    canonical,
+    robots: null,
+    og: { type: previewProxy ? "video.other" : "website", title, description, url: canonical, image: posterProxy || undefined },
+  });
+  const { html, headers } = buildPage({
+    ...parts,
+    title,
+    headExtra,
+    rootHtml,
+    islandPath: path,
+    islandKind: "project-listing",
+    islandData: { publicId },
+    extraHeaders: { "cache-control": "no-store" },
+  });
+  return { status: 200, headers, body: html };
 }
 
 function plainShell(parts, status, noindex) {

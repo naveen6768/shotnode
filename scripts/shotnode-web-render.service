@@ -1,4 +1,4 @@
-# systemd unit for the ShotNode blog SEO render service (Phase 8).
+# systemd unit for the ShotNode SEO render service (blog + public listings).
 # Installed by scripts/deploy-gcp.sh as shotnode-web-render[-dev].service with
 # the Environment= lines below rewritten for the target env. Do not enable the
 # template directly; the deploy script instantiates it per env.
@@ -18,6 +18,7 @@ WorkingDirectory=__DEPLOY_PATH__
 Environment=RENDER_PORT=__RENDER_PORT__
 Environment=BACKEND_ORIGIN=__BACKEND_ORIGIN__
 Environment=SITE_ORIGIN=__SITE_ORIGIN__
+Environment=SHOTNODE_PROJECT_PREVIEW_PLAYBACK_ENABLED=true
 Environment=DIST_DIR=__DEPLOY_PATH__/dist
 Environment=NODE_ENV=production
 ExecStart=/usr/bin/node __DEPLOY_PATH__/server/render/server.js

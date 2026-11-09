@@ -43,12 +43,14 @@ This is a static Vite + React app. Choose any platform below.
 
 Staging and production SSH use IAP. The deploy script adds `--tunnel-through-iap`. Live sites: https://shotnode.pro/ and https://staging.shotnode.pro/. Account setup is in the Android repo guide [`../neo_cut_studio/docs/SETUP_FULL_STACK.md`](../neo_cut_studio/docs/SETUP_FULL_STACK.md).
 
-### Blog SEO render service (Phase 8)
+### SEO render service (GCP)
 
-`/blog*`, `/sitemap.xml`, `/sitemap-*.xml` are proxied by nginx to a loopback
-Node render service (`server/render/server.js`, no React SSR) that injects
-meta/canonical/OG/JSON-LD and the article HTML into the built SPA shell, plus a
-`window.__SHOTNODE_BLOG__` data island the client hydrates from.
+`/blog*`, `/l/:publicId`, `/l/:publicId/poster`, `/sitemap.xml`, and
+`/sitemap-*.xml` are proxied by nginx to a loopback Node render service
+(`server/render/server.js`, no React SSR) that injects crawler-visible metadata
+and page content into the built SPA shell. Listing pages resolve current public
+listing data on each request and use a no-store poster resolver for social
+images, so expiring signed media URLs are not saved in page or image metadata.
 
 | Env | Unit | Port | Backend |
 | --- | --- | --- | --- |
@@ -59,13 +61,16 @@ The deploy script installs/refreshes the systemd unit from
 `scripts/shotnode-web-render.service`, restarts it after every build, waits for
 `/healthz`, then reloads nginx. If the render service is down, nginx falls back
 to the SPA shell for `/blog*` (`error_page 502 503 504 /index.html`).
+The `/l/` route requires this renderer on GCP to provide social metadata; static
+Vercel, Netlify, and Cloudflare Pages deployments still serve the SPA route and
+client-side preview but do not server-render project metadata for crawlers.
 
 ### Vercel (recommended)
 
 1. Push the repo to GitHub.
 2. Import the project at [vercel.com/new](https://vercel.com/new).
 3. Vercel auto-detects the Vite framework via `vercel.json`.
-4. Deploy — no environment variables required.
+4. Deploy. The render service uses `SHOTNODE_PROJECT_PREVIEW_PLAYBACK_ENABLED` (default `true`) as the server-side rollback switch. Static SPA builds can set `VITE_PROJECT_PREVIEW_PLAYBACK_ENABLED=false`; use the same value at the render service when rolling playback back so SSR and client rendering agree.
 
 ### Netlify
 

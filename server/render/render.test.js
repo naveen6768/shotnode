@@ -212,6 +212,162 @@ test("route: unknown slug 404s with noindex shell", async () => {
   assert.ok(r.body.includes("noindex"));
 });
 
+test("route: project landing renders metadata and click-to-play media without caching signed URLs", async () => {
+  const listing = {
+    publicId: "pub-123",
+    listingKind: "PROJECT",
+    title: 'A <scene> & edit',
+    shortDescription: "A short cinematic project",
+    status: "ACTIVE",
+    visibility: "PUBLIC",
+    creator: { displayName: "Alex" },
+    artifactSummary: { durationMs: 5200, aspectRatio: "9:16" },
+    posterUrl: "https://media.example.test/poster?token=poster-signed-secret",
+    previewUrl: "https://media.example.test/preview?token=preview-signed-secret",
+  };
+  const fetchImpl = async (url) => {
+    assert.ok(url.endsWith("/api/v1/marketplace/listings/pub-123"));
+    return { status: 200, json: async () => listing };
+  };
+  const result = await route({
+    path: "/l/pub-123",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    fetchImpl,
+    cache: createCache(),
+  });
+  assert.equal(result.status, 200);
+  assert.equal(result.headers["cache-control"], "no-store");
+  assert.ok(result.body.includes("<title>A &lt;scene&gt; &amp; edit · ShotNode</title>"));
+  assert.ok(result.body.includes('property="og:image" content="https://staging.shotnode.pro/l/pub-123/poster"'));
+  assert.ok(!result.body.includes("poster-signed-secret"));
+  assert.ok(!result.body.includes("preview-signed-secret"));
+  assert.ok(result.body.includes('src="https://staging.shotnode.pro/l/pub-123/preview"'));
+  assert.ok(result.body.includes("controls playsinline muted preload=\"none\""));
+  assert.match(result.headers["content-security-policy"], /media-src 'self' https:/);
+  assert.match(result.headers["content-security-policy"], /connect-src 'self' https:/);
+  assert.match(result.headers["content-security-policy"], /style-src-attr 'unsafe-inline'/);
+  assert.ok(result.body.includes("intent://l/pub-123#Intent;"));
+  assert.ok(result.body.includes("aspect-ratio:9 / 16"));
+});
+
+test("route: project poster resolves a fresh signed URL and never caches it", async () => {
+  let calls = 0;
+  const result = await route({
+    path: "/l/pub-123/poster",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    fetchImpl: async () => ({
+      status: 200,
+      json: async () => ({
+        publicId: "pub-123",
+        listingKind: "PROJECT",
+        visibility: "UNLISTED",
+        posterUrl: `https://media.example.test/poster-${++calls}?sig=ephemeral`,
+      }),
+    }),
+    cache: createCache(),
+  });
+  assert.equal(result.status, 302);
+  assert.equal(result.headers.location, "https://media.example.test/poster-1?sig=ephemeral");
+  assert.equal(result.headers["cache-control"], "no-store");
+  assert.equal(result.headers["referrer-policy"], "no-referrer");
+});
+
+test("route: project preview resolves a fresh signed URL only when requested", async () => {
+  const result = await route({
+    path: "/l/pub-123/preview",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    fetchImpl: async () => ({
+      status: 200,
+      json: async () => ({
+        listingKind: "PROJECT",
+        visibility: "PUBLIC",
+        previewUrl: "https://media.example.test/preview?sig=fresh-only",
+      }),
+    }),
+    cache: createCache(),
+  });
+  assert.equal(result.status, 302);
+  assert.equal(result.headers.location, "https://media.example.test/preview?sig=fresh-only");
+  assert.equal(result.headers["cache-control"], "no-store");
+});
+
+test("route: preview playback kill switch returns poster-only HTML and blocks media resolution", async () => {
+  let calls = 0;
+  const listing = {
+    publicId: "pub-123",
+    listingKind: "PROJECT",
+    visibility: "PUBLIC",
+    title: "Poster only",
+    posterUrl: "https://media.example.test/poster.jpg?sig=secret",
+    previewUrl: "https://media.example.test/preview.mp4?sig=secret",
+  };
+  const render = await route({
+    path: "/l/pub-123",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    projectPreviewPlaybackEnabled: false,
+    fetchImpl: async () => ({ status: 200, json: async () => listing }),
+    cache: createCache(),
+  });
+  assert.equal(render.status, 200);
+  assert.ok(render.body.includes('name="project-preview-playback" content="false"'));
+  assert.ok(render.body.includes("A video preview is not available for this project yet."));
+  assert.ok(!render.body.includes("<video"));
+  assert.ok(!render.body.includes("preview.mp4"));
+  assert.ok(!render.body.includes("sig=secret"));
+
+  const media = await route({
+    path: "/l/pub-123/preview",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    projectPreviewPlaybackEnabled: false,
+    fetchImpl: async () => { calls += 1; return { status: 200, json: async () => listing }; },
+    cache: createCache(),
+  });
+  assert.equal(media.status, 404);
+  assert.equal(calls, 0);
+});
+
+test("route: preview playback config is a no-store JSON kill switch", async () => {
+  const result = await route({
+    path: "/__project-preview-config",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    projectPreviewPlaybackEnabled: false,
+    fetchImpl: async () => { throw new Error("must not request backend"); },
+    cache: createCache(),
+  });
+  assert.equal(result.status, 200);
+  assert.equal(result.headers["content-type"], "application/json; charset=utf-8");
+  assert.equal(result.headers["cache-control"], "no-store");
+  assert.deepEqual(JSON.parse(result.body), { enabled: false });
+});
+
+test("route: private project share links return a noindex not-found page", async () => {
+  const result = await route({
+    path: "/l/private-id",
+    parts: parts(),
+    backendOrigin: "http://backend",
+    siteOrigin: "https://staging.shotnode.pro",
+    fetchImpl: async () => ({
+      status: 200,
+      json: async () => ({ listingKind: "PROJECT", visibility: "PRIVATE" }),
+    }),
+    cache: createCache(),
+  });
+  assert.equal(result.status, 404);
+  assert.ok(result.body.includes('name="robots" content="noindex,nofollow"'));
+});
+
 test("route: slug change 301s to canonical", async () => {
   const fetchImpl = async () => ({
     status: 200,
