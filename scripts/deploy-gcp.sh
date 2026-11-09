@@ -39,13 +39,13 @@ if [[ "${SHOTNODE_DEPLOY_DRY_GUARD:-}" == "1" ]]; then
   [[ -n "${DRY_IAP}" ]] && SHOTNODE_VM_USE_IAP="${DRY_IAP}"
 fi
 
-# Staging web: appsecondbrain@gmail.com / shotnode-staging-asb / shotnode-staging (IAP SSH)
+# Staging web: k.naveen6767@gmail.com / shotnode-staging-k6767-2026 / shotnode-staging (IAP SSH)
 # Production:  k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-prod (IAP SSH)
 # Android build lanes are k.naveen6767@gmail.com / shotnode-prod-k6767-2026 / shotnode-build.
 if [[ "${SHOTNODE_ENV}" == "development" ]]; then
   VM_NAME="${SHOTNODE_VM_NAME:-shotnode-staging}"
-  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-staging-asb}}"
-  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-appsecondbrain@gmail.com}}"
+  VM_PROJECT="${SHOTNODE_VM_PROJECT:-${SHOTNODE_GCP_PROJECT:-shotnode-staging-k6767-2026}}"
+  GCLOUD_ACCOUNT="${SHOTNODE_GCLOUD_ACCOUNT:-${SHOTNODE_GCP_ACCOUNT:-k.naveen6767@gmail.com}}"
   SHOTNODE_VM_USE_IAP="${SHOTNODE_VM_USE_IAP:-true}"
 else
   VM_NAME="${SHOTNODE_VM_NAME:-shotnode-prod}"
@@ -69,9 +69,9 @@ if [[ "${SHOTNODE_ENV}" == "development" ]]; then
     echo "Refusing development web deploy onto VM shotnode-prod." >&2
     exit 1
   fi
-  if [[ "${VM_NAME}" != "shotnode-staging" || "${VM_PROJECT}" != "shotnode-staging-asb" || "${GCLOUD_ACCOUNT}" != "appsecondbrain@gmail.com" ]]; then
+  if [[ "${VM_NAME}" != "shotnode-staging" || "${VM_PROJECT}" != "shotnode-staging-k6767-2026" || "${GCLOUD_ACCOUNT}" != "k.naveen6767@gmail.com" ]]; then
     echo "Refusing development web deploy to project ${VM_PROJECT} VM ${VM_NAME} as ${GCLOUD_ACCOUNT}." >&2
-    echo "Development is appsecondbrain@gmail.com / shotnode-staging-asb / VM shotnode-staging." >&2
+    echo "Development is k.naveen6767@gmail.com / shotnode-staging-k6767-2026 / VM shotnode-staging." >&2
     exit 1
   fi
 fi
