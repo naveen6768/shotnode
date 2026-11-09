@@ -13,6 +13,8 @@ import DeleteAccount from "./components/DeleteAccount";
 import RemixShareLanding from "./pages/RemixShareLanding";
 import ListingShareLanding from "./pages/ListingShareLanding";
 import TemplateShareLanding from "./pages/TemplateShareLanding";
+import CreatorProfileLanding from "./pages/CreatorProfileLanding";
+import CreatorProjectLanding from "./pages/CreatorProjectLanding";
 import BlogIndex from "./pages/blog/BlogIndex";
 import BlogPost from "./pages/blog/BlogPost";
 import BlogTaxonomy from "./pages/blog/BlogTaxonomy";
@@ -25,6 +27,8 @@ export default function App() {
       <Route path="/r/:packageId" element={<RemixShareLanding />} />
       <Route path="/l/:publicId" element={<ListingShareLanding />} />
       <Route path="/t/:templateId" element={<TemplateShareLanding />} />
+      <Route path="/c/:slug" element={<CreatorProfileLanding />} />
+      <Route path="/l/:publicId" element={<CreatorProjectLanding />} />
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutUs />} />
