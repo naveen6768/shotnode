@@ -41,7 +41,7 @@ export default function TermsOfService() {
               Terms of Service
             </h1>
             <p className="text-on-surface-variant text-sm sm:text-base">
-              Last Updated: September 18, 2026. Effective for ShotNode AI
+              Last Updated: October 26, 2026. Effective for ShotNode AI
               Applications and Operations.
             </p>
           </div>
@@ -232,18 +232,11 @@ export default function TermsOfService() {
               <p>
                 Authorized contact email:{" "}
                 <a
-                  href="mailto:k.naveen6767@gmail.com"
+                  href="mailto:contact@shotnode.pro"
                   className="text-[#00D8FF] font-mono hover:underline"
                 >
-                  k.naveen6767@gmail.com
+                  contact@shotnode.pro
                 </a>
-              </p>
-              <p>
-                Inquiries regarding standard legal terms can be forwarded to{" "}
-                <span className="font-mono text-white">
-                  support@shotnode.ai
-                </span>
-                .
               </p>
             </div>
           </section>

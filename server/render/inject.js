@@ -51,6 +51,7 @@ export function headTags({ title, description, canonical, robots, og = {}, twitt
   // NOTE: <title> is owned by buildPage; this only appends head extras.
   let out = metaName("description", (description ?? "").slice(0, 160));
   if (canonical) out += `<link rel="canonical" href="${escapeHtml(canonical)}" />\n`;
+  if (canonical) out += `<link rel="alternate" type="application/rss+xml" title="ShotNode Blog" href="${escapeHtml(new URL("/blog/rss.xml", canonical).href)}" />\n`;
   if (robots) out += metaName("robots", robots);
   out += metaProp("og:type", og.type ?? "website");
   out += metaProp("og:title", og.title ?? title);
@@ -138,7 +139,7 @@ function coverHtml(post, siteOrigin) {
   const cover = post.coverImage;
   if (!cover?.src) return "";
   const src = absUrl(siteOrigin, cover.src) ?? cover.src;
-  return `<figure class="blog-cover"><img src="${escapeHtml(src)}" alt="${escapeHtml(cover.alt ?? "")}" width="${cover.width || 1600}" height="${cover.height || 900}" />${cover.alt ? `<figcaption>${escapeHtml(cover.alt)}</figcaption>` : ""}</figure>`;
+  return `<figure class="blog-cover"><img src="${escapeHtml(src)}" alt="${escapeHtml(cover.alt ?? "")}" width="${cover.width || 1600}" height="${cover.height || 900}" /></figure>`;
 }
 
 export function articleMarkup(post, siteOrigin) {
@@ -172,16 +173,19 @@ export function cardMarkup(post, siteOrigin) {
 }
 
 export function indexMarkup(items, siteOrigin) {
-  const [hero, ...rest] = items;
-  let out = `<span class="blog-eyebrow">The ShotNode blog</span><h1 class="blog-h1">Stories for the <em>creative part.</em></h1>`;
+  const hero = items.find((post) => post.isFeatured && post.coverImage) ?? items.find((post) => post.coverImage) ?? items[0];
+  const rest = items.filter((post) => post.id !== hero?.id);
+  let out = `<span class="blog-eyebrow">The ShotNode blog</span><h1 class="blog-h1">Stories for the <em>creative part.</em></h1><p class="blog-intro">Thoughtful, practical ideas for filming, editing, and sharing more memorable videos.</p>`;
   if (hero) {
-    out += `<article class="blog-hero"><div class="blog-hero-body">` +
+    const cover = hero.coverImage?.src ? `<a class="blog-hero-cover" href="${escapeHtml(siteOrigin)}/blog/${escapeHtml(hero.slug)}"><img src="${escapeHtml(absUrl(siteOrigin, hero.coverImage.src) ?? "")}" alt="" width="${hero.coverImage.width || 1200}" height="${hero.coverImage.height || 675}" /></a>` : "";
+    out += `<article class="blog-hero">${cover}<div class="blog-hero-body">` +
       (hero.category ? `<span class="blog-eyebrow">${escapeHtml(hero.category.name)}</span>` : "") +
       `<h2><a href="${escapeHtml(siteOrigin)}/blog/${escapeHtml(hero.slug)}">${escapeHtml(hero.title || hero.slug)}</a></h2>` +
       (hero.excerpt ? `<p>${escapeHtml(hero.excerpt)}</p>` : "") +
+      `<a class="blog-read-link" href="${escapeHtml(siteOrigin)}/blog/${escapeHtml(hero.slug)}">Read the story ↗</a>` +
       `</div></article>`;
   }
-  out += `<div class="blog-grid">${rest.map((p) => cardMarkup(p, siteOrigin)).join("")}</div>`;
+  out += `<div class="blog-grid${rest.length === 2 ? " blog-grid-two" : ""}">${rest.map((p) => cardMarkup(p, siteOrigin)).join("")}</div>`;
   return out;
 }
 

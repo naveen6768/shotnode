@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title">
+  <title id="title">Sound and pacing</title>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#9FB7B7"/><stop offset="1" stop-color="#4C6C76"/></linearGradient></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/><circle cx="1040" cy="570" r="350" fill="#2B5360" opacity=".25"/>
+  <text x="78" y="103" fill="#254955" font-family="Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="5">SHOTNODE / FIELD NOTES</text>
+  <text x="78" y="216" fill="#FFF9E8" font-family="Georgia,serif" font-size="78">Listen to</text><text x="78" y="300" fill="#FFF9E8" font-family="Georgia,serif" font-style="italic" font-size="78">the edit.</text>
+  <text x="80" y="378" fill="#E5E7D5" font-family="Arial,sans-serif" font-size="24" letter-spacing="1">Sound gives every cut a reason.</text>
+  <g transform="translate(700 127)"><rect x="0" y="0" width="404" height="352" rx="20" fill="#E9E7DA"/><rect x="18" y="18" width="368" height="268" rx="8" fill="#294D58"/><circle cx="286" cy="90" r="58" fill="#F5BC87"/><path d="M18 223 Q100 135 195 220 T386 173 V286 H18" fill="#78917E"/><rect x="160" y="305" width="84" height="10" rx="5" fill="#A4B4AA"/><rect x="160" y="326" width="84" height="7" rx="4" fill="#C3CEC1"/></g>
+  <g transform="translate(79 497)" stroke="#FFF7E7" stroke-width="7" stroke-linecap="round"><path d="M0 52 V53 M24 37 V70 M48 12 V94 M72 38 V68 M96 48 V59 M120 23 V82 M144 3 V103 M168 32 V76 M192 44 V61 M216 10 V96 M240 29 V78 M264 46 V62 M288 1 V106 M312 25 V80 M336 42 V67 M360 15 V90 M384 34 V76 M408 48 V58 M432 23 V83 M456 4 V103 M480 35 V72 M504 44 V63 M528 20 V85 M552 42 V67 M576 52 V53 M600 30 V77 M624 11 V96 M648 41 V69 M672 49 V57 M696 22 V84 M720 6 V100 M744 32 V74 M768 45 V60 M792 15 V90 M816 31 V77 M840 46 V62 M864 36 V72 M888 52 V53 M912 41 V68 M936 24 V83 M960 46 V62 M984 52 V53 M1008 38 V70"/></g>
+</svg>

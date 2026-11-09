@@ -15,14 +15,20 @@ import { AiDisclosure, Byline } from "../../components/blog/PostCard";
 import { ArticleBody, ShareLinks, Toc } from "../../components/blog/Article";
 import { BlogBreadcrumb, BlogCta, RelatedPosts, useBlogMeta } from "../../components/blog/Related";
 import NotFoundPage from "../NotFoundPage";
+import { findLaunchPost, launchPosts } from "../../data/launchPosts.js";
 
 function PostView({ post, related, preview }: { post: BlogPost; related: BlogPostSummary[]; preview: boolean }) {
   const location = useLocation();
   const cover = coverSrc(post.coverImage);
   const sentRef = useRef(false);
-  useBlogMeta(post.seoTitle || post.title, post.seoDescription || post.excerpt);
+  useBlogMeta(post.seoTitle || post.title, post.seoDescription || post.excerpt, {
+    canonicalUrl: post.canonicalUrl,
+    image: coverSrc(post.ogImage ?? post.coverImage),
+    type: "article",
+    noindex: preview || post.noindex,
+  });
   useEffect(() => {
-    if (preview || sentRef.current) return;
+    if (preview || post.id.startsWith("launch-") || sentRef.current) return;
     sentRef.current = true;
     sendView(post.slug, document.referrer || undefined);
   }, [preview, post.slug]);
@@ -52,7 +58,6 @@ function PostView({ post, related, preview }: { post: BlogPost; related: BlogPos
               height={post.coverImage?.height || 900}
               fetchPriority="high"
             />
-            {post.coverImage?.alt && <figcaption>{post.coverImage.alt}</figcaption>}
           </figure>
         )}
         <div className="blog-post-layout">
@@ -83,7 +88,10 @@ export default function BlogPost({ preview = false }: { preview?: boolean }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [data, setData] = useState<BlogPostResponse | null>(() =>
-    preview ? null : getInitialBlogData<BlogPostResponse>(pathname),
+    preview ? null : getInitialBlogData<BlogPostResponse>(pathname) ?? (() => {
+      const post = findLaunchPost(slug) as BlogPost | null;
+      return post ? { post, related: launchPosts.filter((item) => item.slug !== slug) as BlogPostSummary[] } : null;
+    })(),
   );
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,10 +99,8 @@ export default function BlogPost({ preview = false }: { preview?: boolean }) {
   useEffect(() => {
     let cancelled = false;
     const ctrl = new AbortController();
-    if (!preview && data) {
-      if (data.post.slug !== slug) navigate(`/blog/${data.post.slug}`, { replace: true });
-      return;
-    }
+    if (!preview && data?.post.slug === slug && !data.post.id.startsWith("launch-")) return;
+    setData((current) => current?.post.slug === slug ? current : null);
     (async () => {
       setNotFound(false);
       setError(null);
@@ -126,7 +132,7 @@ export default function BlogPost({ preview = false }: { preview?: boolean }) {
       </div>
     );
   }
-  if (!data) {
+  if (!data || (!preview && data.post.slug !== slug)) {
     return (
       <div className="blog-page container">
         <p className="blog-status" role="status">
@@ -135,5 +141,5 @@ export default function BlogPost({ preview = false }: { preview?: boolean }) {
       </div>
     );
   }
-  return <PostView post={data.post} related={data.related} preview={preview} />;
+  return <PostView key={data.post.slug} post={data.post} related={data.related} preview={preview} />;
 }

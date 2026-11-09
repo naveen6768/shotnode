@@ -129,11 +129,31 @@
   line-height: 1.8;
 }
 
+.blog-read-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 21px;
+  color: var(--ink, #252622);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--orange, #ed5934);
+  text-underline-offset: 6px;
+}
+
+.blog-read-link:hover { color: var(--orange, #ed5934); }
+
 /* Card grid */
 .blog-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 32px 28px;
+}
+
+.blog-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 860px;
 }
 
 .blog-card-cover img,

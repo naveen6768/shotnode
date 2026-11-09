@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { getInitialBlogData, listPosts, type BlogPostSummary } from "../../lib/blogApi";
 import { PostCard } from "../../components/blog/PostCard";
 import { useBlogMeta } from "../../components/blog/Related";
+import { launchPosts, launchSummaries } from "../../data/launchPosts.js";
 
 /** Category and tag archives share the filtered grid. */
 export default function BlogTaxonomy({ kind }: { kind: "category" | "tag" }) {
@@ -10,7 +11,10 @@ export default function BlogTaxonomy({ kind }: { kind: "category" | "tag" }) {
   const path = kind === "category" ? `/blog/category/${slug}` : `/blog/tag/${slug}`;
   // Read the injected payload once: the helper deletes it on first read.
   const [initial] = useState(() =>
-    getInitialBlogData<{ items: BlogPostSummary[]; nextCursor: string | null }>(path),
+    getInitialBlogData<{ items: BlogPostSummary[]; nextCursor: string | null }>(path) ?? {
+      items: launchSummaries(kind === "category" ? { category: slug } : { tag: slug }) as BlogPostSummary[],
+      nextCursor: null,
+    },
   );
   const [items, setItems] = useState<BlogPostSummary[]>(initial?.items ?? []);
   const [cursor, setCursor] = useState<string | null>(initial?.nextCursor ?? null);
@@ -20,12 +24,16 @@ export default function BlogTaxonomy({ kind }: { kind: "category" | "tag" }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const label = kind === "category" ? "Category" : "Tag";
-  useBlogMeta(`${label}: ${slug}`, `Stories filed under ${slug} on the ShotNode blog.`);
+  const displayName = kind === "category"
+    ? launchPosts.find((post) => post.category.slug === slug)?.category.name
+    : launchPosts.flatMap((post) => post.tags).find((tag) => tag.slug === slug)?.name;
+  const title = displayName ?? slug.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+  useBlogMeta(`${label}: ${title}`, `Stories filed under ${title} on the ShotNode blog.`);
 
   const load = useCallback(
-    async (nextCursor: string | null, append: boolean) => {
+    async (nextCursor: string | null, append: boolean, preserve = false) => {
       if (append) setLoadingMore(true);
-      else setLoading(true);
+      else if (!preserve) setLoading(true);
       setError(null);
       try {
         const params = kind === "category" ? { category: slug } : { tag: slug };
@@ -43,7 +51,10 @@ export default function BlogTaxonomy({ kind }: { kind: "category" | "tag" }) {
   );
 
   useEffect(() => {
-    if (path === firstPath.current && seeded) return; // hydrated: keep server data
+    if (path === firstPath.current && seeded) {
+      void load(null, false, true); // show prerendered content while refreshing CMS
+      return;
+    }
     firstPath.current = path;
     setItems([]);
     setCursor(null);
@@ -53,7 +64,7 @@ export default function BlogTaxonomy({ kind }: { kind: "category" | "tag" }) {
   return (
     <div className="blog-page container">
       <span className="blog-eyebrow">{label}</span>
-      <h1 className="blog-h1">{slug.replace(/-/g, " ")}</h1>
+      <h1 className="blog-h1">{title}</h1>
       {loading ? (
         <p className="blog-status" role="status">
           Loading stories…

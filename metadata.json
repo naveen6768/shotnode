@@ -1,6 +1,6 @@
 {
   "name": "ShotNode",
-  "description": "The AI video editor built for creators who move fast. Command complex edits, sync beats, and execute creative direction frame-by-frame instantly.",
+  "description": "Marketing website for ShotNode, an AI-assisted video editor for Android.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

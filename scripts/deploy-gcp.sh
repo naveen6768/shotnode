@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Deploy ShotNode marketing site (production or development) to the GCP VM.
+# Deploy ShotNode marketing site to staging or the preserved legacy VM.
+# The live shotnode.pro VM uses scripts/deploy-live-web.sh.
 #
 # Usage:
 #   SHOTNODE_ENV=production  bash scripts/deploy-gcp.sh

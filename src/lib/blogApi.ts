@@ -5,6 +5,7 @@
  * `shotnode_backend/docs/backend/46_blog_cms_database_and_api_contracts.md`.
  */
 import { absoluteUrl, apiUrl } from "./apiBase";
+import { findLaunchPost, launchPosts, launchSummaries } from "../data/launchPosts.js";
 
 export { absoluteUrl };
 
@@ -157,9 +158,22 @@ function listParams(p: BlogListParams): string {
   return s ? `?${s}` : "";
 }
 
-export function listPosts(p: BlogListParams = {}): Promise<BlogListResponse> {
+function launchItems(p: BlogListParams): BlogPostSummary[] {
+  return launchSummaries(p) as BlogPostSummary[];
+}
+
+/** CMS content wins by slug; launch stories remain visible until migrated. */
+export async function listPosts(p: BlogListParams = {}): Promise<BlogListResponse> {
   const { signal, ...rest } = p;
-  return getJson<BlogListResponse>(`/api/v1/blog/posts${listParams(rest)}`, { signal });
+  const local = p.cursor ? [] : launchItems(p);
+  try {
+    const cms = await getJson<BlogListResponse>(`/api/v1/blog/posts${listParams(rest)}`, { signal });
+    const slugs = new Set(cms.items.map((post) => post.slug));
+    return { ...cms, items: [...cms.items, ...local.filter((post) => !slugs.has(post.slug))] };
+  } catch (error) {
+    if (signal?.aborted || local.length === 0) throw error;
+    return { items: local, nextCursor: null };
+  }
 }
 
 export function searchPosts(q: string, opts?: { cursor?: string; signal?: AbortSignal }): Promise<BlogListResponse> {
@@ -173,16 +187,40 @@ export interface BlogPostResponse {
   related: BlogPostSummary[];
 }
 
-export function getPost(slug: string, signal?: AbortSignal): Promise<BlogPostResponse> {
-  return getJson<BlogPostResponse>(`/api/v1/blog/posts/${encodeURIComponent(slug)}`, { signal });
+export async function getPost(slug: string, signal?: AbortSignal): Promise<BlogPostResponse> {
+  try {
+    return await getJson<BlogPostResponse>(`/api/v1/blog/posts/${encodeURIComponent(slug)}`, { signal });
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    const post = findLaunchPost(slug) as BlogPost | null;
+    if (!post) throw error;
+    return { post, related: launchPosts.filter((item) => item.slug !== slug) as BlogPostSummary[] };
+  }
 }
 
-export function listCategories(signal?: AbortSignal): Promise<BlogCategory[]> {
-  return getJson<BlogCategory[]>(`/api/v1/blog/categories`, { signal });
+export async function listCategories(signal?: AbortSignal): Promise<BlogCategory[]> {
+  const local = [{ slug: "creator-guides", name: "Creator Guides", description: "Practical video storytelling and editing guides.", postCount: launchPosts.length }];
+  try {
+    const cms = await getJson<BlogCategory[]>(`/api/v1/blog/categories`, { signal });
+    const published = cms.filter((item) => item.postCount > 0);
+    const existing = new Set(published.map((item) => item.slug));
+    return [...published, ...local.filter((item) => !existing.has(item.slug))];
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    return local;
+  }
 }
 
-export function listTags(signal?: AbortSignal): Promise<BlogTag[]> {
-  return getJson<BlogTag[]>(`/api/v1/blog/tags?limit=200`, { signal });
+export async function listTags(signal?: AbortSignal): Promise<BlogTag[]> {
+  const local = Array.from(new Map(launchPosts.flatMap((post) => post.tags.map((item) => [item.slug, item]))).values());
+  try {
+    const cms = await getJson<BlogTag[]>(`/api/v1/blog/tags?limit=200`, { signal });
+    const existing = new Set(cms.map((item) => item.slug));
+    return [...cms, ...local.filter((item) => !existing.has(item.slug))];
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    return local;
+  }
 }
 
 export interface BlogAuthorResponse {
@@ -190,8 +228,16 @@ export interface BlogAuthorResponse {
   posts: BlogPostSummary[];
 }
 
-export function getAuthor(slug: string, signal?: AbortSignal): Promise<BlogAuthorResponse> {
-  return getJson<BlogAuthorResponse>(`/api/v1/blog/authors/${encodeURIComponent(slug)}`, { signal });
+export async function getAuthor(slug: string, signal?: AbortSignal): Promise<BlogAuthorResponse> {
+  try {
+    const cms = await getJson<BlogAuthorResponse>(`/api/v1/blog/authors/${encodeURIComponent(slug)}`, { signal });
+    if (slug !== "shotnode-editorial") return cms;
+    const existing = new Set(cms.posts.map((post) => post.slug));
+    return { ...cms, posts: [...cms.posts, ...launchItems({ author: slug }).filter((post) => !existing.has(post.slug))] };
+  } catch (error) {
+    if (signal?.aborted || slug !== "shotnode-editorial") throw error;
+    return { author: launchPosts[0].author as BlogAuthorProfile, posts: launchItems({ author: slug }) };
+  }
 }
 
 export function getPreview(token: string, signal?: AbortSignal): Promise<BlogPostResponse> {
@@ -224,6 +270,7 @@ export function sendView(slug: string, referrer?: string): void {
 
 /** Absolute cover URL for <img> (backend serves relative media paths). */
 export function coverSrc(cover: BlogImageRef | null): string | null {
+  if (cover?.src?.startsWith("/blog/")) return cover.src;
   return absoluteUrl(cover?.src ?? null);
 }
 

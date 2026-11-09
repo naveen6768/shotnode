@@ -21,6 +21,7 @@ import {
   ogUrl,
 } from "./inject.js";
 import { buildPage, rebaseXml, route } from "./server.js";
+import { launchPosts } from "../../src/data/launchPosts.js";
 
 const SHELL = `<!doctype html><html><head>
 <meta charset="UTF-8" />
@@ -238,6 +239,35 @@ test("route: backend outage 503s posts, shells index", async () => {
   assert.equal(post.headers["retry-after"], "30");
   const index = await rt({ path: "/blog", parts: parts(), backendOrigin: "http://b", siteOrigin: "https://staging.shotnode.pro", fetchImpl, cache: cc() });
   assert.equal(index.status, 200);
+});
+
+test("launch articles remain crawlable when the CMS is empty or unavailable", async () => {
+  const fetchImpl = async () => { throw new Error("down"); };
+  const params = { parts: parts(), backendOrigin: "http://b", siteOrigin: "https://shotnode.pro", fetchImpl, cache: createCache() };
+  const index = await route({ ...params, path: "/blog" });
+  const article = await route({ ...params, path: `/blog/${launchPosts[0].slug}` });
+  const archive = await route({ ...params, path: "/blog/category/creator-guides" });
+  const author = await route({ ...params, path: "/blog/author/shotnode-editorial" });
+  const sitemap = await route({ ...params, path: "/sitemap-blog.xml" });
+  const feed = await route({ ...params, path: "/blog/rss.xml" });
+  for (const result of [index, article, archive, author, sitemap, feed]) assert.equal(result.status, 200);
+  assert.ok(index.body.includes(launchPosts[0].title));
+  assert.ok(article.body.includes("Start with one sentence"));
+  assert.ok(article.body.includes('rel="canonical"'));
+  assert.ok(archive.body.includes(launchPosts[1].title));
+  assert.ok(author.body.includes("ShotNode Editorial"));
+  assert.ok(sitemap.body.includes(`/blog/${launchPosts[2].slug}`));
+  assert.ok(feed.body.includes(launchPosts[2].title));
+});
+
+test("a CMS article with a matching launch slug takes precedence", async () => {
+  const replacement = { ...launchPosts[0], id: "cms-1", title: "CMS replacement", bodyHtml: "<p>Published in CMS.</p>" };
+  const fetchImpl = async () => ({ status: 200, json: async () => ({ post: replacement, related: [] }) });
+  const rendered = await route({ path: `/blog/${replacement.slug}`, parts: parts(), backendOrigin: "http://b", siteOrigin: "https://shotnode.pro", fetchImpl, cache: createCache() });
+  assert.equal(rendered.status, 200);
+  assert.ok(rendered.body.includes("CMS replacement"));
+  assert.ok(rendered.body.includes("Published in CMS."));
+  assert.ok(!rendered.body.includes(launchPosts[0].title));
 });
 
 test("route: healthz + feeds rebase staging origin", async () => {

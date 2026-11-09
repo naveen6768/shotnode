@@ -18,6 +18,7 @@ import EditorPreview from "../components/EditorPreview";
 import DownloadSection from "../components/DownloadSection";
 import DownloadLink from "../components/DownloadLink";
 import FAQAccordion from "../components/FAQAccordion";
+import Affiliations from "../components/Affiliations";
 
 export default function HomePage() {
   return (
@@ -52,6 +53,7 @@ export default function HomePage() {
         </div>
         <EditorPreview />
       </section>
+      <Affiliations />
       <section
         className="platform-strip container"
         aria-label="Create for your favorite platforms"

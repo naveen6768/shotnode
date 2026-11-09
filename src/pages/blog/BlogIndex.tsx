@@ -12,24 +12,27 @@ import {
 } from "../../lib/blogApi";
 import { PostCard } from "../../components/blog/PostCard";
 import { useBlogMeta } from "../../components/blog/Related";
+import { launchPosts } from "../../data/launchPosts.js";
 
 /** Public blog index: hero, category chips, card grid, cursor pages. */
 export default function BlogIndex() {
   const { pathname } = useLocation();
-  const [data, setData] = useState<BlogListResponse | null>(() => getInitialBlogData<BlogListResponse>(pathname));
-  const [items, setItems] = useState<BlogPostSummary[]>(() => data?.items ?? []);
-  const [cursor, setCursor] = useState<string | null>(() => data?.nextCursor ?? null);
+  const [initial] = useState<BlogListResponse>(() => getInitialBlogData<BlogListResponse>(pathname) ?? {
+    items: launchPosts as BlogPostSummary[], nextCursor: null,
+  });
+  const [items, setItems] = useState<BlogPostSummary[]>(initial.items);
+  const [cursor, setCursor] = useState<string | null>(initial.nextCursor);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [loading, setLoading] = useState(!data);
+  const [loading, setLoading] = useState(initial.items.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useBlogMeta("Blog", "Stories, guides, and news from the ShotNode team.");
+  useBlogMeta("Blog", "Practical ideas for filming, editing, and sharing more memorable videos.");
 
   const load = useCallback(
     async (nextCursor: string | null, append: boolean, category: string | null) => {
       if (append) setLoadingMore(true);
-      else setLoading(true);
+      else setLoading((current) => current || items.length === 0);
       setError(null);
       try {
         const res = await listPosts({ cursor: nextCursor ?? undefined, limit: 12, category: category ?? undefined });
@@ -42,16 +45,16 @@ export default function BlogIndex() {
         setLoadingMore(false);
       }
     },
-    [],
+    [items.length],
   );
 
   useEffect(() => {
-    if (!data) void load(null, false, null);
+    void load(null, false, null);
     listCategories().then(setCategories).catch(() => setCategories([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const hero = items.find((p) => p.coverImage) ?? items[0] ?? null;
+  const hero = items.find((p) => p.isFeatured && p.coverImage) ?? items.find((p) => p.coverImage) ?? items[0] ?? null;
   const rest = hero ? items.filter((p) => p.id !== hero.id) : [];
 
   return (
@@ -60,7 +63,7 @@ export default function BlogIndex() {
       <h1 className="blog-h1">
         Stories for the <em>creative part.</em>
       </h1>
-      <p className="blog-intro">Guides, creator stories, and product news from the ShotNode team.</p>
+      <p className="blog-intro">Thoughtful, practical ideas for filming, editing, and sharing more memorable videos.</p>
 
       {categories.length > 0 && (
         <div className="blog-chips" role="navigation" aria-label="Categories">
@@ -69,6 +72,8 @@ export default function BlogIndex() {
             className={activeCategory === null ? "blog-chip-active" : ""}
             onClick={() => {
               setActiveCategory(null);
+              setItems([]);
+              setLoading(true);
               void load(null, false, null);
             }}
           >
@@ -81,6 +86,8 @@ export default function BlogIndex() {
               className={activeCategory === c.slug ? "blog-chip-active" : ""}
               onClick={() => {
                 setActiveCategory(c.slug);
+                setItems([]);
+                setLoading(true);
                 void load(null, false, c.slug);
               }}
             >
@@ -128,10 +135,11 @@ export default function BlogIndex() {
                   <Link to={`/blog/${hero.slug}`}>{hero.title || hero.slug}</Link>
                 </h2>
                 {hero.excerpt && <p>{hero.excerpt}</p>}
+                <Link className="blog-read-link" to={`/blog/${hero.slug}`}>Read the story <span aria-hidden="true">↗</span></Link>
               </div>
             </article>
           )}
-          <div className="blog-grid">
+          <div className={`blog-grid${rest.length === 2 ? " blog-grid-two" : ""}`}>
             {rest.map((p) => (
               <PostCard key={p.id} post={p} />
             ))}

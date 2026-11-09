@@ -3,16 +3,18 @@ import { Link, useLocation } from "react-router-dom";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import Brand from "./Brand";
 import DownloadLink from "./DownloadLink";
+import { useBlogAvailability } from "../lib/useBlogAvailability";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const blogAvailable = useBlogAvailability();
   const location = useLocation();
   useEffect(() => setOpen(false), [location]);
   const links = [
     { label: "Product", to: "/#features-section" },
     { label: "How it works", to: "/#tools-section" },
     { label: "Get the app", to: "/#download-section" },
-    { label: "Blog", to: "/blog" },
+    ...(blogAvailable ? [{ label: "Blog", to: "/blog" }] : []),
     { label: "Our story", to: "/about" },
   ];
   return (
