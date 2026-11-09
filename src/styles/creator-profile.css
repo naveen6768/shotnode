@@ -1,0 +1,25 @@
+.creator-page { min-height: 100vh; padding: 24px max(20px, calc((100vw - 1080px) / 2)); background: #080f19; color: #f6f8fb; }
+.creator-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.creator-header { display: flex; align-items: center; gap: 32px; padding: 88px 0 48px; border-bottom: 1px solid #26394c; }
+.creator-avatar { width: 116px; height: 116px; flex: none; display: grid; place-items: center; border-radius: 50%; background: #087df4; font-size: 48px; font-weight: 700; }
+.creator-heading h1 { margin: 5px 0 8px; font-size: clamp(28px, 5vw, 45px); }
+.creator-heading p { color: #bdcce0; margin: 0 0 20px; }
+.creator-handle { color: #83b9f3; }
+.creator-stats { display: flex; flex-wrap: wrap; gap: 24px; color: #b1c2d8; }
+.creator-stats strong { color: white; }
+.creator-portfolio { padding: 28px 0 80px; }
+.creator-portfolio h2 { font-size: 24px; margin: 0 0 20px; }
+.creator-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.creator-project { position: relative; aspect-ratio: 1; overflow: hidden; background: #152536; display: grid; place-items: center; }
+.creator-project img { width: 100%; height: 100%; object-fit: cover; }
+.creator-project > span:last-child { position: absolute; bottom: 0; width: 100%; padding: 28px 12px 12px; background: linear-gradient(transparent, #000c); font-weight: 600; }
+.creator-poster-fallback { color: #8198b0; }
+.creator-state { color: #b1c2d8; padding: 24px 0; }
+.creator-more { margin-top: 24px; }
+.creator-listing { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr); gap: 48px; align-items: center; padding: 80px 0; }
+.creator-listing h1 { font-size: clamp(28px, 5vw, 48px); margin: 12px 0; }
+.creator-listing p { color: #bdcce0; line-height: 1.6; }
+.creator-listing-media { background: #152536; min-height: 320px; display: grid; place-items: center; border-radius: 16px; overflow: hidden; }
+.creator-listing-media img, .creator-listing-media video { width: 100%; max-height: 70vh; object-fit: contain; }
+@media (max-width: 600px) { .creator-header { gap: 18px; padding-top: 48px; align-items: flex-start; } .creator-avatar { width: 76px; height: 76px; font-size: 32px; } .creator-stats { gap: 10px 18px; } .creator-grid { gap: 3px; } .creator-project > span:last-child { font-size: 12px; padding: 18px 5px 5px; } }
+@media (max-width: 600px) { .creator-listing { grid-template-columns: 1fr; gap: 24px; padding: 40px 0; } }
