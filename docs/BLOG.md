@@ -20,7 +20,7 @@ Phases that change this repo:
 Branch: `feature/blog-cms`.
 
 The live `shotnode.pro` host is now confirmed as `shotnode-production` in
-`shotnode-prod-app-2026` (`34.93.6.78`). Use `scripts/deploy-live-web.sh` for
+`shotnode-prod-sn-2026` (`34.14.209.32`). Use `scripts/deploy-live-web.sh` for
 website releases there. `scripts/deploy-gcp.sh` with `SHOTNODE_ENV=production`
 targets the preserved legacy VM, which does not serve the public domain.
 

@@ -4,8 +4,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROJECT="shotnode-prod-app-2026"
-ACCOUNT="shotnodeapp@gmail.com"
+PROJECT="shotnode-prod-sn-2026"
+ACCOUNT="shotnode@gmail.com"
 VM="shotnode-production"
 ZONE="asia-south1-a"
 DOMAIN="shotnode.pro"
