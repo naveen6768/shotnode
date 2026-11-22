@@ -20,7 +20,7 @@ import {
   jsonLdBreadcrumb,
   ogUrl,
 } from "./inject.js";
-import { buildPage, rebaseXml, route } from "./server.js";
+import { buildPage, playStoreUrl, rebaseXml, route } from "./server.js";
 import { launchPosts } from "../../src/data/launchPosts.js";
 
 const SHELL = `<!doctype html><html><head>
@@ -213,47 +213,144 @@ test("route: unknown slug 404s with noindex shell", async () => {
   assert.ok(r.body.includes("noindex"));
 });
 
-test("route: project landing renders metadata and click-to-play media without caching signed URLs", async () => {
-  const listing = {
-    publicId: "pub-123",
-    listingKind: "PROJECT",
-    title: 'A <scene> & edit',
-    shortDescription: "A short cinematic project",
-    status: "ACTIVE",
-    visibility: "PUBLIC",
-    creator: { displayName: "Alex" },
-    artifactSummary: { durationMs: 5200, aspectRatio: "9:16" },
-    posterUrl: "https://media.example.test/poster?token=poster-signed-secret",
-    previewUrl: "https://media.example.test/preview?token=preview-signed-secret",
-  };
-  const fetchImpl = async (url) => {
-    assert.ok(url.endsWith("/api/v1/marketplace/listings/pub-123"));
-    return { status: 200, json: async () => listing };
-  };
-  const result = await route({
-    path: "/l/pub-123",
+const LISTING = {
+  publicId: "pub-123",
+  listingKind: "PROJECT",
+  title: "A <scene> & edit",
+  shortDescription: "A short cinematic project",
+  status: "ACTIVE",
+  visibility: "PUBLIC",
+  creator: { displayName: "Alex" },
+  artifactSummary: { durationMs: 5200, aspectRatio: "9:16" },
+  posterUrl: "https://media.example.test/poster?token=poster-signed-secret",
+  previewUrl: "https://media.example.test/preview.mp4?sig=preview-secret",
+};
+const IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+const ANDROID_UA = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+
+function renderListing(path, { userAgent = IPHONE_UA, listing = LISTING, fetchImpl } = {}) {
+  return route({
+    path,
     parts: parts(),
     backendOrigin: "http://backend",
     siteOrigin: "https://staging.shotnode.pro",
-    fetchImpl,
+    userAgent,
+    fetchImpl: fetchImpl ?? (async () => ({ status: 200, json: async () => listing })),
     cache: createCache(),
   });
+}
+
+/** Extract the inline redirect script: its JS target and the CSP hash of its exact bytes. */
+function inlineRedirect(body) {
+  const match = body.match(/<script>window\.location\.replace\((".*?")\);<\/script>/);
+  assert.ok(match, "inline redirect script present");
+  return {
+    target: JSON.parse(match[1]),
+    hash: createHash("sha256").update(`window.location.replace(${match[1]});`, "utf8").digest("base64"),
+  };
+}
+
+test("route: human visit to a share link redirects to Play with the listing referrer", async () => {
+  const result = await renderListing("/l/pub-123");
   assert.equal(result.status, 200);
   assert.equal(result.headers["cache-control"], "no-store");
-  assert.ok(result.body.includes("<title>A &lt;scene&gt; &amp; edit · ShotNode</title>"));
-  assert.ok(result.body.includes('property="og:image" content="https://staging.shotnode.pro/l/pub-123/poster"'));
-  assert.ok(!result.body.includes("poster-signed-secret"));
-  assert.ok(!result.body.includes("preview-signed-secret"));
-  assert.ok(result.body.includes('src="https://staging.shotnode.pro/l/pub-123/preview"'));
-  assert.ok(result.body.includes("controls playsinline muted preload=\"none\""));
-  assert.match(result.headers["content-security-policy"], /media-src 'self' https:/);
-  assert.match(result.headers["content-security-policy"], /connect-src 'self' https:/);
-  assert.match(result.headers["content-security-policy"], /style-src-attr 'unsafe-inline'/);
-  assert.ok(result.body.includes("intent://l/pub-123#Intent;"));
-  assert.ok(result.body.includes("aspect-ratio:9 / 16"));
+  assert.ok(result.body.includes("<title>Opening in ShotNode</title>"));
+  assert.ok(result.body.includes('name="robots" content="noindex,nofollow"'));
+  assert.ok(!result.body.includes("A &lt;scene&gt;"), "humans get no listing content, only the redirect");
+
+  const play = playStoreUrl("pub-123");
+  assert.equal(
+    play,
+    "https://play.google.com/store/apps/details?id=com.shotnode.app&referrer=shotnode_listing%3Dpub-123%26utm_source%3Dshare%26utm_medium%3Dlisting_link%26utm_campaign%3Dproject_link",
+  );
+  assert.equal(new URL(play).searchParams.get("referrer"), "shotnode_listing=pub-123&utm_source=share&utm_medium=listing_link&utm_campaign=project_link");
+  assert.ok(result.body.includes(`<meta http-equiv="refresh" content="0;url=${escapeHtml(play)}" />`));
+
+  const redirect = inlineRedirect(result.body);
+  assert.equal(redirect.target, play);
+  assert.match(result.headers["content-security-policy"], new RegExp(`'sha256-${redirect.hash.replace(/[+/=]/g, "\\$&")}'`));
 });
 
-test("route: project poster resolves a fresh signed URL and never caches it", async () => {
+test("route: Android visits use the app intent with the Play URL as fallback", async () => {
+  const result = await renderListing("/l/pub-123", { userAgent: ANDROID_UA });
+  const play = playStoreUrl("pub-123");
+  const intent = `intent://l/pub-123#Intent;scheme=shotnode;package=com.shotnode.app;S.browser_fallback_url=${encodeURIComponent(play)};end`;
+  assert.ok(result.body.includes(`<meta http-equiv="refresh" content="0;url=${escapeHtml(intent)}" />`));
+  assert.equal(inlineRedirect(result.body).target, intent);
+});
+
+test("route: link-preview crawlers get OG and Twitter metadata with no redirect", async () => {
+  const bots = [
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "WhatsApp/2.23.20.0",
+    "TelegramBot (like TwitterBot)",
+    "Twitterbot/1.0",
+    "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+    "LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)",
+    "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
+    "Applebot/0.1 (+http://www.apple.com/go/applebot)",
+    "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+  ];
+  for (const userAgent of bots) {
+    const result = await renderListing("/l/pub-123", { userAgent });
+    assert.equal(result.status, 200, userAgent);
+    assert.ok(result.body.includes('property="og:title" content="A &lt;scene&gt; &amp; edit · ShotNode"'), userAgent);
+    assert.ok(result.body.includes('property="og:type" content="website"'), userAgent);
+    assert.ok(result.body.includes('property="og:url" content="https://staging.shotnode.pro/l/pub-123"'), userAgent);
+    assert.ok(result.body.includes('property="og:image" content="https://staging.shotnode.pro/l/pub-123/poster"'), userAgent);
+    assert.ok(result.body.includes('name="twitter:card" content="summary_large_image"'), userAgent);
+    assert.ok(!result.body.includes('http-equiv="refresh"'), userAgent);
+    assert.ok(!result.body.includes("window.location.replace"), userAgent);
+    assert.equal((result.headers["content-security-policy"].match(/'sha256-/g) ?? []).length, 1, userAgent);
+    assert.ok(!result.body.includes("poster-signed-secret"), userAgent);
+  }
+});
+
+test("route: malformed listing ids get a generic noindex page without a backend call", async () => {
+  let calls = 0;
+  const fetchImpl = async () => { calls += 1; throw new Error("must not request backend"); };
+  const paths = [
+    "/l/ab",
+    "/l/bad%20id",
+    "/l/%3Cscript%3Ealert%3C%2Fscript%3E",
+    `/l/${"a".repeat(65)}`,
+    "/l/bad%20id/poster",
+  ];
+  for (const path of paths) {
+    for (const userAgent of [IPHONE_UA, "facebookexternalhit/1.1"]) {
+      const result = await renderListing(path, { userAgent, fetchImpl });
+      assert.equal(result.status, 404, path);
+      assert.ok(result.body.includes('name="robots" content="noindex,nofollow"'), path);
+      assert.ok(!result.body.includes("play.google.com"), path);
+      assert.ok(!result.body.includes('http-equiv="refresh"'), path);
+    }
+  }
+  assert.equal(calls, 0);
+});
+
+test("route: listing pages never expose video, preview media, or the removed playback endpoints", async () => {
+  let calls = 0;
+  const fetchImpl = async () => { calls += 1; return { status: 200, json: async () => LISTING }; };
+  for (const userAgent of [IPHONE_UA, "Twitterbot/1.0"]) {
+    const page = await renderListing("/l/pub-123", { userAgent, fetchImpl });
+    assert.equal(page.status, 200);
+    for (const forbidden of ["<video", "<source", "og:video", "video.other", "preview.mp4", "preview-secret", "project-preview-playback", "/preview"]) {
+      assert.ok(!page.body.includes(forbidden), `${forbidden} must not appear (${userAgent})`);
+    }
+  }
+
+  const media = await renderListing("/l/pub-123/preview", { fetchImpl });
+  assert.equal(media.status, 404);
+
+  const config = await renderListing("/__project-preview-config", { fetchImpl });
+  assert.equal(config.status, 404);
+  assert.ok(!config.body.includes('"enabled"'));
+
+  assert.equal(calls, 1, "only the crawler render hits the backend; humans redirect without a lookup");
+});
+
+test("route: project poster resolves a fresh signed image URL and never caches it", async () => {
   let calls = 0;
   const result = await route({
     path: "/l/pub-123/poster",
@@ -267,6 +364,7 @@ test("route: project poster resolves a fresh signed URL and never caches it", as
         listingKind: "PROJECT",
         visibility: "UNLISTED",
         posterUrl: `https://media.example.test/poster-${++calls}?sig=ephemeral`,
+        previewUrl: "https://media.example.test/preview.mp4?sig=must-not-resolve",
       }),
     }),
     cache: createCache(),
@@ -277,84 +375,9 @@ test("route: project poster resolves a fresh signed URL and never caches it", as
   assert.equal(result.headers["referrer-policy"], "no-referrer");
 });
 
-test("route: project preview resolves a fresh signed URL only when requested", async () => {
-  const result = await route({
-    path: "/l/pub-123/preview",
-    parts: parts(),
-    backendOrigin: "http://backend",
-    siteOrigin: "https://staging.shotnode.pro",
-    fetchImpl: async () => ({
-      status: 200,
-      json: async () => ({
-        listingKind: "PROJECT",
-        visibility: "PUBLIC",
-        previewUrl: "https://media.example.test/preview?sig=fresh-only",
-      }),
-    }),
-    cache: createCache(),
-  });
-  assert.equal(result.status, 302);
-  assert.equal(result.headers.location, "https://media.example.test/preview?sig=fresh-only");
-  assert.equal(result.headers["cache-control"], "no-store");
-});
 
-test("route: preview playback kill switch returns poster-only HTML and blocks media resolution", async () => {
-  let calls = 0;
-  const listing = {
-    publicId: "pub-123",
-    listingKind: "PROJECT",
-    visibility: "PUBLIC",
-    title: "Poster only",
-    posterUrl: "https://media.example.test/poster.jpg?sig=secret",
-    previewUrl: "https://media.example.test/preview.mp4?sig=secret",
-  };
-  const render = await route({
-    path: "/l/pub-123",
-    parts: parts(),
-    backendOrigin: "http://backend",
-    siteOrigin: "https://staging.shotnode.pro",
-    projectPreviewPlaybackEnabled: false,
-    fetchImpl: async () => ({ status: 200, json: async () => listing }),
-    cache: createCache(),
-  });
-  assert.equal(render.status, 200);
-  assert.ok(render.body.includes('name="project-preview-playback" content="false"'));
-  assert.ok(render.body.includes("A video preview is not available for this project yet."));
-  assert.ok(!render.body.includes("<video"));
-  assert.ok(!render.body.includes("preview.mp4"));
-  assert.ok(!render.body.includes("sig=secret"));
-
-  const media = await route({
-    path: "/l/pub-123/preview",
-    parts: parts(),
-    backendOrigin: "http://backend",
-    siteOrigin: "https://staging.shotnode.pro",
-    projectPreviewPlaybackEnabled: false,
-    fetchImpl: async () => { calls += 1; return { status: 200, json: async () => listing }; },
-    cache: createCache(),
-  });
-  assert.equal(media.status, 404);
-  assert.equal(calls, 0);
-});
-
-test("route: preview playback config is a no-store JSON kill switch", async () => {
-  const result = await route({
-    path: "/__project-preview-config",
-    parts: parts(),
-    backendOrigin: "http://backend",
-    siteOrigin: "https://staging.shotnode.pro",
-    projectPreviewPlaybackEnabled: false,
-    fetchImpl: async () => { throw new Error("must not request backend"); },
-    cache: createCache(),
-  });
-  assert.equal(result.status, 200);
-  assert.equal(result.headers["content-type"], "application/json; charset=utf-8");
-  assert.equal(result.headers["cache-control"], "no-store");
-  assert.deepEqual(JSON.parse(result.body), { enabled: false });
-});
-
-test("route: private project share links return a noindex not-found page", async () => {
-  const result = await route({
+test("route: private project share links give crawlers a noindex 404 and humans the Play redirect", async () => {
+  const common = {
     path: "/l/private-id",
     parts: parts(),
     backendOrigin: "http://backend",
@@ -364,9 +387,17 @@ test("route: private project share links return a noindex not-found page", async
       json: async () => ({ listingKind: "PROJECT", visibility: "PRIVATE" }),
     }),
     cache: createCache(),
-  });
-  assert.equal(result.status, 404);
-  assert.ok(result.body.includes('name="robots" content="noindex,nofollow"'));
+  };
+  const crawler = await route({ ...common, userAgent: "facebookexternalhit/1.1" });
+  assert.equal(crawler.status, 404);
+  assert.ok(crawler.body.includes('name="robots" content="noindex,nofollow"'));
+  assert.ok(!crawler.body.includes("play.google.com"));
+
+  const human = await route({ ...common, userAgent: IPHONE_UA });
+  assert.equal(human.status, 200);
+  assert.ok(human.body.includes('http-equiv="refresh"'));
+  assert.ok(human.body.includes("play.google.com"));
+  assert.ok(!human.body.includes("PRIVATE"));
 });
 
 test("route: slug change 301s to canonical", async () => {

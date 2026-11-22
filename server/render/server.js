@@ -3,8 +3,13 @@
  * metadata/HTML into the built SPA shell.
  *
  * Routes: /blog, /blog/category/:slug, /blog/tag/:slug, /blog/author/:slug,
- *   /blog/:slug, /blog/preview/:token, /l/:publicId, /l/:publicId/{poster,preview},
+ *   /blog/:slug, /blog/preview/:token, /l/:publicId, /l/:publicId/poster,
  *   /blog/rss.xml, /sitemap.xml (+ index parts), /healthz.
+ *
+ * Project share links (/l/:publicId) never play media in the browser. Crawlers
+ * get OG/Twitter metadata with an image-only poster; humans are sent to the
+ * ShotNode app (Android intent) or Google Play with the listing id in the
+ * install referrer. No video URL, <video>, or preview proxy is served.
  */
 import http from "node:http";
 import fs from "node:fs";
@@ -26,27 +31,33 @@ import {
   jsonLdBlogPosting,
   jsonLdBreadcrumb,
   ogUrl,
+  redirectScript,
 } from "./inject.js";
 
 function log(fields) {
   process.stdout.write(JSON.stringify({ service: "blog-render", ...fields }) + "\n");
 }
 
-function cspFor(islandHash) {
+function cspFor(scriptHashes) {
   return [
     "default-src 'self'",
     "img-src 'self' data: https:",
     "media-src 'self' https:",
     "connect-src 'self' https:",
     "frame-src https://www.youtube-nocookie.com",
-    `script-src 'self' 'sha256-${islandHash}'`,
+    `script-src 'self' ${scriptHashes.map((hash) => `'sha256-${hash}'`).join(" ")}`,
     "style-src 'self' https://fonts.googleapis.com",
     "style-src-attr 'unsafe-inline'",
     "font-src 'self' https://fonts.gstatic.com",
   ].join("; ");
 }
 
-export function buildPage({ shell, parts, baseHead, title, headExtra, rootHtml, islandPath, islandKind, islandData, extraHeaders = {} }) {
+/**
+ * Assemble the SPA shell with per-route head/body. `extraScriptHashes` lists
+ * the sha256 (base64) of any additional inline script placed in headExtra, so
+ * the CSP allows exactly those bytes and nothing else.
+ */
+export function buildPage({ shell, parts, baseHead, title, headExtra, rootHtml, islandPath, islandKind, islandData, extraHeaders = {}, extraScriptHashes = [] }) {
   const headEnd = shell.indexOf("</head>");
   const head = baseHead.replace(TITLE_RE, `<title>${escapeHtml(title)}</title>`) + "\n" + headExtra;
   const { script, hash } = islandScript(islandPath, islandKind, islandData);
@@ -56,7 +67,7 @@ export function buildPage({ shell, parts, baseHead, title, headExtra, rootHtml, 
     rootHtml +
     script +
     shell.slice(parts.rootCloseStart);
-  return { html, hash, headers: { "content-security-policy": cspFor(hash), ...extraHeaders } };
+  return { html, hash, headers: { "content-security-policy": cspFor([hash, ...extraScriptHashes]), ...extraHeaders } };
 }
 
 export function startServer({ port, backendOrigin, siteOrigin, distDir, shellOverride = null, fetchImpl = fetch } = {}) {
@@ -83,7 +94,7 @@ export function startServer({ port, backendOrigin, siteOrigin, distDir, shellOve
         siteOrigin,
         fetchImpl,
         cache,
-        projectPreviewPlaybackEnabled: process.env.SHOTNODE_PROJECT_PREVIEW_PLAYBACK_ENABLED !== "false",
+        userAgent: req.headers["user-agent"] ?? "",
       });
       status = out.status;
       headers = out.headers;
@@ -106,32 +117,20 @@ export function startServer({ port, backendOrigin, siteOrigin, distDir, shellOve
   return { server, cache };
 }
 
-export async function route({ path, parts, backendOrigin, siteOrigin, fetchImpl, cache, projectPreviewPlaybackEnabled = true }) {
-  if (path === "/__project-preview-config") {
-    return {
-      status: 200,
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
-      body: JSON.stringify({ enabled: Boolean(projectPreviewPlaybackEnabled) }),
-      cacheHit: false,
-    };
-  }
+export async function route({ path, parts, backendOrigin, siteOrigin, fetchImpl, cache, userAgent = "" }) {
   if (path === "/healthz") {
     return { status: 200, headers: { "content-type": "text/plain" }, body: "ok", cacheHit: false };
   }
-  const listingMediaMatch = path.match(/^\/l\/([^/]+)\/(poster|preview)$/);
-  if (listingMediaMatch) {
-    return routeListingMedia({
-      publicId: decode(listingMediaMatch[1]),
-      mediaKind: listingMediaMatch[2],
-      backendOrigin,
-      siteOrigin,
-      fetchImpl,
-      projectPreviewPlaybackEnabled,
-    });
+  const listingPosterMatch = path.match(/^\/l\/([^/]+)\/poster$/);
+  if (listingPosterMatch) {
+    const publicId = decode(listingPosterMatch[1]);
+    if (!LISTING_ID_RE.test(publicId)) return plainShell(parts, 404, true);
+    return routeListingPoster({ publicId, backendOrigin, siteOrigin, fetchImpl });
   }
   const listingMatch = path.match(/^\/l\/([^/]+)$/);
   if (listingMatch) {
     const publicId = decode(listingMatch[1]);
+    if (!LISTING_ID_RE.test(publicId)) return plainShell(parts, 404, true);
     const t0 = Date.now();
     try {
       const out = await renderListingRoute({
@@ -141,7 +140,7 @@ export async function route({ path, parts, backendOrigin, siteOrigin, fetchImpl,
         backendOrigin,
         siteOrigin,
         fetchImpl,
-        projectPreviewPlaybackEnabled,
+        userAgent,
       });
       out.backendMs = Date.now() - t0;
       return { ...out, cacheHit: false };
@@ -236,34 +235,90 @@ function durationLabel(durationMs) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-async function routeListingMedia({ publicId, mediaKind, backendOrigin, siteOrigin, fetchImpl, projectPreviewPlaybackEnabled }) {
-  if (mediaKind === "preview" && !projectPreviewPlaybackEnabled) {
-    return { status: 404, headers: { "cache-control": "no-store" }, body: "project preview unavailable" };
-  }
+/**
+ * Image-only poster for og:image. Signed poster URLs are resolved per request
+ * and never written into HTML. This route never serves video.
+ */
+async function routeListingPoster({ publicId, backendOrigin, siteOrigin, fetchImpl }) {
   const response = await fetchPublicProjectListing(publicId, backendOrigin, fetchImpl);
   if (response.status !== 200 || !response.data) {
     const status = response.status === 404 ? 404 : 503;
     return {
       status,
       headers: { "cache-control": "no-store", ...(status === 503 ? { "retry-after": "30" } : {}) },
-      body: `project ${mediaKind} unavailable`,
+      body: "project poster unavailable",
     };
   }
-  const mediaUrl = resolveMediaUrl(
-    mediaKind === "poster" ? response.data.posterUrl : response.data.previewUrl,
-    siteOrigin,
-  );
-  if (!mediaUrl) {
-    return { status: 404, headers: { "cache-control": "no-store" }, body: `project ${mediaKind} unavailable` };
+  const posterUrl = resolveMediaUrl(response.data.posterUrl, siteOrigin);
+  if (!posterUrl) {
+    return { status: 404, headers: { "cache-control": "no-store" }, body: "project poster unavailable" };
   }
   return {
     status: 302,
-    headers: { location: mediaUrl, "cache-control": "no-store", "referrer-policy": "no-referrer" },
+    headers: { location: posterUrl, "cache-control": "no-store", "referrer-policy": "no-referrer" },
     body: "",
   };
 }
 
-async function renderListingRoute({ publicId, path, parts, backendOrigin, siteOrigin, fetchImpl, projectPreviewPlaybackEnabled }) {
+/** Listing ids are the only path input that reaches the backend or the Play referrer. */
+export const LISTING_ID_RE = /^[A-Za-z0-9_-]{4,64}$/;
+
+const PLAY_PACKAGE = "com.shotnode.app";
+
+/**
+ * Link-preview crawlers that must read OG tags and must NOT be redirected
+ * (a redirect would hand them the Play Store page instead of metadata).
+ */
+export const LINK_PREVIEW_BOT_RE =
+  /facebookexternalhit|facebot|whatsapp|twitterbot|telegrambot|slackbot|linkedinbot|discordbot|googlebot|bingbot|applebot|linkpresentation|imessage|pinterest|embedly|skypeuripreview|redditbot/i;
+
+/** Play Store URL for a listing. The referrer carries the listing id for install attribution. */
+export function playStoreUrl(publicId) {
+  const referrer = `shotnode_listing=${publicId}&utm_source=share&utm_medium=listing_link&utm_campaign=project_link`;
+  return `https://play.google.com/store/apps/details?id=${PLAY_PACKAGE}&referrer=${encodeURIComponent(referrer)}`;
+}
+
+/** Android browsers use an intent that opens the app, falling back to Play; others go straight to Play. */
+export function listingRedirectTarget(publicId, userAgent = "") {
+  const play = playStoreUrl(publicId);
+  if (/Android/i.test(userAgent)) {
+    return `intent://l/${encodeURIComponent(publicId)}#Intent;scheme=shotnode;package=${PLAY_PACKAGE};S.browser_fallback_url=${encodeURIComponent(play)};end`;
+  }
+  return play;
+}
+
+export function isLinkPreviewBot(userAgent = "") {
+  return LINK_PREVIEW_BOT_RE.test(userAgent);
+}
+
+/**
+ * Humans never see the project in the browser: they are sent to the app (Android intent) or the Play
+ * listing right away, whether or not the listing exists, is private, or the backend is reachable.
+ * Only link-preview crawlers continue to the metadata page below.
+ */
+function renderListingRedirect({ publicId, path, parts, userAgent }) {
+  const target = listingRedirectTarget(publicId, userAgent);
+  const playUrl = playStoreUrl(publicId);
+  const redirect = redirectScript(target);
+  const headExtra = `<meta http-equiv="refresh" content="0;url=${escapeHtml(target)}" />\n${redirect.script}\n` +
+    '<meta name="robots" content="noindex,nofollow" />\n';
+  const rootHtml = `<main class="listing-share-page"><section class="listing-share-card"><h1>Opening this project in ShotNode\u2026</h1><p class="listing-share-description">If nothing happens, use the button below.</p><div class="listing-share-actions"><a class="button button-orange" href="${escapeHtml(playUrl)}">Get ShotNode on Google Play</a></div></section></main>`;
+  const { html, headers } = buildPage({
+    ...parts,
+    title: "Opening in ShotNode",
+    headExtra,
+    rootHtml,
+    islandPath: path,
+    islandKind: "project-listing",
+    islandData: { publicId },
+    extraHeaders: { "cache-control": "no-store" },
+    extraScriptHashes: [redirect.hash],
+  });
+  return { status: 200, headers, body: html, cacheHit: false };
+}
+
+async function renderListingRoute({ publicId, path, parts, backendOrigin, siteOrigin, fetchImpl, userAgent = "" }) {
+  if (!isLinkPreviewBot(userAgent)) return renderListingRedirect({ publicId, path, parts, userAgent });
   const response = await fetchPublicProjectListing(publicId, backendOrigin, fetchImpl);
   if (response.status !== 200 || !response.data) {
     if (response.status === 404) return plainShell(parts, 404, true);
@@ -272,32 +327,30 @@ async function renderListingRoute({ publicId, path, parts, backendOrigin, siteOr
   const listing = response.data;
   const title = `${listing.title || "Project preview"} · ShotNode`;
   const description = String(listing.shortDescription || listing.description ||
-    "Watch this short project preview, then open the editable ShotNode project to make it your own.").slice(0, 160);
+    "Open this editable ShotNode project in the ShotNode app to preview and remix it.").slice(0, 160);
   const canonical = `${siteOrigin}/l/${encodeURIComponent(publicId)}`;
   const posterProxy = listing.posterUrl ? `${canonical}/poster` : null;
   const duration = durationLabel(listing.artifactSummary?.durationMs);
-  const previewProxy = projectPreviewPlaybackEnabled && listing.previewUrl ? `${canonical}/preview` : null;
   const creator = listing.creator?.displayName || "ShotNode creator";
   const ratio = String(listing.artifactSummary?.aspectRatio || "16:9");
   const safeRatio = /^(?:\d+(?:\.\d+)?\s*[:/x]\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?)$/i.test(ratio) ? ratio : "16:9";
   const aspect = safeRatio.includes(":") || safeRatio.includes("/") || safeRatio.toLowerCase().includes("x")
     ? safeRatio.replace(/x/i, " / ").replace(/[:/]/g, " / ")
     : safeRatio;
-  const media = previewProxy
-    ? `<video class="listing-share-player" controls playsinline muted preload="none" poster="${escapeHtml(posterProxy || "")}" aria-label="Preview of ${escapeHtml(listing.title)}"><source src="${escapeHtml(previewProxy)}" type="video/mp4" />Your browser cannot play this project preview.</video>`
-    : posterProxy
-      ? `<img class="listing-share-poster-image" src="${escapeHtml(posterProxy)}" alt="Poster for ${escapeHtml(listing.title)}" />`
-      : `<div class="listing-share-poster-placeholder" role="img" aria-label="No preview image available">Project preview</div>`;
-  const previewMessage = previewProxy ? "" : `<p role="status">A video preview is not available for this project yet.</p>`;
-  const playStore = "https://play.google.com/store/apps/details?id=com.shotnode.app";
-  const intent = `intent://l/${encodeURIComponent(publicId)}#Intent;scheme=shotnode;package=com.shotnode.app;S.browser_fallback_url=${encodeURIComponent(playStore)};end`;
-  const rootHtml = `<main class="listing-share-page"><section class="listing-share-card"><div class="listing-share-heading"><span class="eyebrow"><span></span> A PROJECT TO PREVIEW</span><h1>${escapeHtml(listing.title || "Project preview")}</h1><p class="listing-share-byline">Made by <strong>${escapeHtml(creator)}</strong>${duration ? ` · ${escapeHtml(duration)}` : ""}</p></div><div class="listing-share-player-wrap" style="aspect-ratio:${escapeHtml(aspect)}">${media}${previewMessage}</div><p class="listing-share-description">Watch this short project preview, then open the editable ShotNode project to make it your own.</p><div class="listing-share-actions"><a class="button button-orange" href="${escapeHtml(intent)}">Open in ShotNode</a><a class="button button-outline" href="${playStore}">Get ShotNode</a></div><span class="listing-share-note">Preview the edit first. Remix it when you’re ready.</span></section></main>`;
-  const headExtra = `<meta name="project-preview-playback" content="${projectPreviewPlaybackEnabled ? "true" : "false"}" />\n` + headTags({
+  const media = posterProxy
+    ? `<img class="listing-share-poster-image" src="${escapeHtml(posterProxy)}" alt="Poster for ${escapeHtml(listing.title)}" />`
+    : `<div class="listing-share-poster-placeholder" role="img" aria-label="No preview image available">Project preview</div>`;
+  const playUrl = playStoreUrl(publicId);
+  const target = listingRedirectTarget(publicId, userAgent);
+  const rootHtml = `<main class="listing-share-page"><section class="listing-share-card"><div class="listing-share-heading"><span class="eyebrow"><span></span> A PROJECT TO PREVIEW</span><h1>${escapeHtml(listing.title || "Project preview")}</h1><p class="listing-share-byline">Made by <strong>${escapeHtml(creator)}</strong>${duration ? ` · ${escapeHtml(duration)}` : ""}</p></div><div class="listing-share-player-wrap" style="aspect-ratio:${escapeHtml(aspect)}">${media}</div><p class="listing-share-description">${escapeHtml(description)}</p><div class="listing-share-actions"><a class="button button-orange" href="${escapeHtml(target)}">Open in ShotNode</a><a class="button button-outline" href="${escapeHtml(playUrl)}">Get ShotNode on Google Play</a></div><span class="listing-share-note">Open the project in the ShotNode app to preview and remix it.</span></section></main>`;
+
+  // Crawlers only: metadata with no redirect (humans are handled by renderListingRedirect).
+  const headExtra = headTags({
     title,
     description,
     canonical,
     robots: null,
-    og: { type: previewProxy ? "video.other" : "website", title, description, url: canonical, image: posterProxy || undefined },
+    og: { type: "website", title, description, url: canonical, image: posterProxy || undefined },
   });
   const { html, headers } = buildPage({
     ...parts,

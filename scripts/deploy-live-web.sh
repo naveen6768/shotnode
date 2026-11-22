@@ -132,5 +132,6 @@ if [[ "${blog_ready}" -ne 1 ]]; then
   exit 1
 fi
 curl -fsS --noproxy '*' --resolve shotnode.pro:443:127.0.0.1 https://shotnode.pro/api/v1/health >/dev/null
+curl -fsS --noproxy '*' --resolve shotnode.pro:443:127.0.0.1 -A 'Mozilla/5.0 (Linux; Android 14)' https://shotnode.pro/l/deploycheck1 | grep -q 'play.google.com'
 echo "Live web release installed. Backup: ${BACKUP}"
 REMOTE

@@ -57,6 +57,12 @@ and page content into the built SPA shell. Listing pages resolve current public
 listing data on each request and use a no-store poster resolver for social
 images, so expiring signed media URLs are not saved in page or image metadata.
 
+Project share links (`/l/:publicId`) never play in the browser. Link-preview
+crawlers get OG/Twitter metadata with the poster image. Human visitors get a
+redirect to the ShotNode app (Android intent) or Google Play, with the listing id
+in the install referrer. The web does not serve project preview video, and
+`/l/:publicId/preview` is not routed.
+
 | Env | Unit | Port | Backend |
 | --- | --- | --- | --- |
 | Production | `shotnode-web-render` | `3020` | `http://127.0.0.1:8090` |
@@ -66,16 +72,17 @@ The deploy scripts install/refresh the systemd unit from
 `scripts/shotnode-web-render.service`, restarts it after every build, waits for
 `/healthz`, then reloads nginx. If the render service is down, nginx falls back
 to the SPA shell for `/blog*` (`error_page 502 503 504 /index.html`).
-The `/l/` route requires this renderer on GCP to provide social metadata; static
-Vercel, Netlify, and Cloudflare Pages deployments still serve the SPA route and
-client-side preview but do not server-render project metadata for crawlers.
+The `/l/` route never plays a project in the browser: Android App Links open the app, and the renderer
+(or, without it, the SPA route) sends browsers to the Play listing with the listing id in the install
+referrer. The renderer on GCP also serves OG metadata to link-preview crawlers; static Vercel, Netlify and
+Cloudflare Pages deployments serve only the SPA redirect and no crawler metadata.
 
 ### Vercel (recommended)
 
 1. Push the repo to GitHub.
 2. Import the project at [vercel.com/new](https://vercel.com/new).
 3. Vercel auto-detects the Vite framework via `vercel.json`.
-4. Deploy. The render service uses `SHOTNODE_PROJECT_PREVIEW_PLAYBACK_ENABLED` (default `true`) as the server-side rollback switch. Static SPA builds can set `VITE_PROJECT_PREVIEW_PLAYBACK_ENABLED=false`; use the same value at the render service when rolling playback back so SSR and client rendering agree.
+4. Deploy. The render service has no project-preview playback switch: `/l/:publicId` redirects humans to the app or Play and serves metadata to crawlers only.
 
 ### Netlify
 

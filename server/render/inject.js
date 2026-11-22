@@ -203,3 +203,14 @@ export function islandScript(path, kind, data) {
   const hash = createHash("sha256").update(inner, "utf8").digest("base64");
   return { script: `<script>${inner}</script>`, hash };
 }
+
+/**
+ * One-shot redirect for human visitors to a share link. The target is written
+ * as an escaped JS string literal, and its CSP hash is returned so buildPage
+ * can allow exactly this script.
+ */
+export function redirectScript(target) {
+  const inner = `window.location.replace(${encodeIsland(target)});`;
+  const hash = createHash("sha256").update(inner, "utf8").digest("base64");
+  return { script: `<script>${inner}</script>`, hash };
+}
