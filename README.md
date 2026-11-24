@@ -40,7 +40,7 @@ website-only deploy script below so the backend on that VM is left intact.
 | Env | Command | Account | Project | VM | IP | Path |
 | --- | --- | --- | --- | --- | --- | --- |
 | Live production | `bash scripts/deploy-live-web.sh` | `shotnode@gmail.com` | `shotnode-prod-sn-2026` | `shotnode-production` | `34.14.209.32` | `/var/www/shotnode-dev` |
-| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-staging-k6767-2026` | `shotnode-staging` | `34.47.197.158` | `/var/www/shotnode-dev` |
+| Staging | `SHOTNODE_ENV=development bash scripts/deploy-gcp.sh` | `shotnodeapp@gmail.com` | `shotnode-staging-k6767-2026` | `shotnode-staging` | `34.47.197.158` | `/var/www/shotnode-dev` |
 | Preserved legacy VM | `SHOTNODE_ENV=production bash scripts/deploy-gcp.sh` | `k.naveen6767@gmail.com` | `shotnode-prod-k6767-2026` | `shotnode-prod` | `34.93.135.34` | `/var/www/shotnode` |
 
 All VM access uses IAP. The live deploy builds locally, uploads only website

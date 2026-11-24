@@ -42,7 +42,7 @@ export default function HomePage() {
           watching, wherever inspiration finds you.
         </p>
         <div className="hero-actions">
-          <DownloadLink icon>Get the Android app</DownloadLink>
+          <DownloadLink icon campaign="hero">Get the Android app</DownloadLink>
           <a className="button button-outline" href="#product-demo">
             <Play size={14} /> Explore the app
           </a>

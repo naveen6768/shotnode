@@ -29,7 +29,7 @@ export default function Header() {
           ))}
         </nav>
         <div className="header-actions">
-          <DownloadLink className="button button-dark button-small">
+          <DownloadLink className="button button-dark button-small" campaign="header">
             Get the app
           </DownloadLink>
           <button

@@ -18,7 +18,7 @@ export default function DownloadSection() {
             From the clips on your phone to a story you’re proud to share. Bring
             ShotNode along for your next idea.
           </p>
-          <DownloadLink icon>Get it on Google Play</DownloadLink>
+          <DownloadLink icon campaign="download_section">Get it on Google Play</DownloadLink>
           <small>
             Available for Android. Visit Google Play for current app details and
             pricing.
